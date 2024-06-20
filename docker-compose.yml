@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    container_name: dbwim
+    environment:
+      MYSQL_DATABASE: 'wimapp-db'
+      MYSQL_ROOT_USER: 'root'
+      MYSQL_ROOT_PASSWORD: 'robotowim2004'
+    command:
+      - "--log_bin_trust_function_creators=1"
+    ports:
+      - '3308:3306'
+    expose:
+      - '3308'
+    volumes:
+      - ./data/mysql/db:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pmafriarefull
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 7997:80
+
+  redis:
+    image: redis:7.0.11-alpine
+    ports:
+      - 5000:5000
+
+  djangowim:
+    container_name: django_wim_app
+    build:
+      context: .
+    command: python manage.py runserver 0.0.0.0:8081
+    volumes:
+      - ./:/app/
+    ports:
+      - 8081:8081
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=0930j30h302hj320
+      - ALLOWED_HOSTS=localhost,127.0.0.1,webinaire.friare.org
+    depends_on:
+      - redis
+      - db
