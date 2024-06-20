@@ -41,7 +41,7 @@ class CustomUser(AbstractBaseUser):
 
     def __str__(self):
         return self.email
-#email, pwd, age,classe,
+#email, pwd, age,classe,preferd
 
 
     def has_perm(self, perm, obj=None):
