@@ -264,6 +264,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'ssl0.ovh.net'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = "contact@workinmusic.fr"
-#'contacts@workinmusic.fr'
+#'contacts@workinmusic.fr'ff
 EMAIL_HOST_PASSWORD ="Pazf54T9wE8yH8g"
 EMAIL_USE_TLS = True  # Utilisez TLS pour sécuriser la connexion
