@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-pd7(cbqees77gvuo1bl^mdpbiiowe4g*xa2v_e$breh93q=xq_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["app.workinmusic.fr"]
 
 
 # Application definition
@@ -219,7 +219,7 @@ CORS_ALLOWED_ORIGINS = [
 
 
 AUTH_USER_MODEL = 'account.CustomUser'
-CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://api-webinaire.friare.org",]
+CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://api-webinaire.friare.org","app.workinmusic.fr"]
 
 #Djsoer
 DJOSER = {
