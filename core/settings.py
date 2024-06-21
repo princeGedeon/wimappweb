@@ -61,9 +61,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     "social_django.middleware.SocialAuthExceptionMiddleware",
@@ -220,7 +221,7 @@ CORS_ALLOWED_ORIGINS = [
 "https://localhost:80884",
 "https://localhost:8085",
 ]
-
+CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'account.CustomUser'
 CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://api-webinaire.friare.org",]
