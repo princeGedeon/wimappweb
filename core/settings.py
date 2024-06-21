@@ -98,6 +98,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
 }
 
 SIMPLE_JWT = {
@@ -231,9 +234,9 @@ DJOSER = {
     "SOCIAL_AUTH_TOKEN_STRATEGY": "djoser.social.token.jwt.TokenStrategy",
     "SOCIAL_AUTH_ALLOWED_REDIRECT_URIS": ["http://localhost:3000","https://workinmusic.fr"],
     "SERIALIZERS": {
-        "user_create": "account.serializers.UserCreateSerializer",
-        "user": "account.serializers.UserCreateSerializer",
-        "current_user": "account.serializers.UserCreateSerializer",
+        "user_create": "account.serializers.CustomUserCreateSerializer",
+        "user": "account.serializers.CustomUserUpdateSerializer",
+        "current_user": "account.serializers.CustomUserUpdateSerializer",
         "user_delete": "djoser.serializers.UserDeleteSerializer",
     },
 }
