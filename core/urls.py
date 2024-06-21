@@ -20,6 +20,8 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
+from core.schemagen import BothHttpAndHttpsSchemaGenerator
+
 schema_view = get_schema_view(
    openapi.Info(
       title="WorkInMusic API",
@@ -29,6 +31,7 @@ schema_view = get_schema_view(
       contact=openapi.Contact(email="contact@snippets.local"),
       license=openapi.License(name="BSD License"),
    ),
+    generator_class=BothHttpAndHttpsSchemaGenerator,  # Here
    public=True,
    permission_classes=(permissions.AllowAny,),
 )
