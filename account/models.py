@@ -1,7 +1,4 @@
 from django.db import models
-
-# Create your models here.
-
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 class CustomUserManager(BaseUserManager):
@@ -15,7 +12,7 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_staff_member', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
 
@@ -28,10 +25,10 @@ class CustomUser(AbstractBaseUser):
     pays = models.CharField(max_length=50, null=True, blank=True)
     ville = models.CharField(max_length=50, null=True, blank=True)
     profilUrl = models.URLField(null=True, blank=True)
-    typeCompte=models.CharField(max_length=10, choices=[('STANDARD', 'Standard'), ('PREMIUM', 'Premium')], default=('STANDARD','Standard'))
+    typeCompte = models.CharField(max_length=10, choices=[('STANDARD', 'Standard'), ('PREMIUM', 'Premium')], default=('STANDARD', 'Standard'))
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    is_staff_member = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
     objects = CustomUserManager()
@@ -41,8 +38,6 @@ class CustomUser(AbstractBaseUser):
 
     def __str__(self):
         return self.email
-#email, pwd, age,classe,preferd
-
 
     def has_perm(self, perm, obj=None):
         return True
@@ -52,7 +47,7 @@ class CustomUser(AbstractBaseUser):
 
     @property
     def is_staff(self):
-        return self.is_admin
+        return self.is_staff_member
 
     def add_licence(self, licence_id):
         # Method to add a licence to the user

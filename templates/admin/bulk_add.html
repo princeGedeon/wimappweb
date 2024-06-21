@@ -1,0 +1,10 @@
+<!-- templates/admin/bulk_add.html -->
+
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Create Multiple Licences</h1>
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Create Licences">
+</form>
+{% endblock %}

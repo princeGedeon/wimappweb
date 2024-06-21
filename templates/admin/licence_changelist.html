@@ -1,0 +1,11 @@
+<!-- templates/admin/licence_changelist.html -->
+
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+    <ul class="object-tools">
+        <li>
+            <a href="{% url 'admin:bulk_add_licences' %}" class="addlink">Add multiple licences</a>
+        </li>
+    </ul>
+{% endblock %}
