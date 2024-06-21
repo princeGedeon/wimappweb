@@ -63,6 +63,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     "social_django.middleware.SocialAuthExceptionMiddleware",
@@ -196,7 +197,10 @@ MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-
+"https://app.workinmusic.fr",
+    "http://app.workinmusic.fr",
+"https://www.app.workinmusic.fr",
+    "http://www.gapp.workinmusic.fr",
 "http://localhost:8001",
 "http://127.0.0.1:9000",
 "http://localhost:8000",
