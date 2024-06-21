@@ -209,22 +209,12 @@ CORS_ALLOWED_ORIGINS = [
 "http://localhost:8080",
 "http://localhost:8080",
 "http://localhost:8081",
-"http://localhost:8082",
-"http://localhost:8083",
-"http://localhost:8084",
-"http://localhost:8085",
-"https://localhost:8080",
-"https://localhost:8080",
-"https://localhost:8081",
-"https://localhost:8082",
-"https://localhost:8083",
-"https://localhost:80884",
-"https://localhost:8085",
+
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
 AUTH_USER_MODEL = 'account.CustomUser'
-CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://api-webinaire.friare.org",]
+CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://app.workinmusic.fr","http://app.workinmusic.fr"]
 
 #Djsoer
 DJOSER = {
