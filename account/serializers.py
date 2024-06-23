@@ -3,13 +3,19 @@ from djoser.serializers import UserCreateSerializer
 
 # Djoser Serializers
 from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
-from rest_framework import serializers
+from rest_framework import serializers, generics, permissions, status
+from rest_framework.response import Response
+
+from licenceapp.models import Licence
 from .models import CustomUser
 User = get_user_model()
 
 
 
 
+from rest_framework import serializers
+
+from django.utils import timezone
 
 class CustomUserCreateSerializer(BaseUserCreateSerializer):
     class Meta(BaseUserCreateSerializer.Meta):
@@ -28,3 +34,5 @@ class UserCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
         model = User
         fields = ("id", "email", "fullname","password")
+
+

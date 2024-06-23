@@ -1,5 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.utils import timezone
+
+
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -16,6 +20,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
 
+
 class CustomUser(AbstractBaseUser):
     email = models.EmailField(unique=True)
     fullname = models.CharField(max_length=255)
@@ -25,9 +30,10 @@ class CustomUser(AbstractBaseUser):
     pays = models.CharField(max_length=50, null=True, blank=True)
     ville = models.CharField(max_length=50, null=True, blank=True)
     profilUrl = models.URLField(null=True, blank=True)
-    typeCompte = models.CharField(max_length=10, choices=[('STANDARD', 'Standard'), ('PREMIUM', 'Premium')], default=('STANDARD', 'Standard'))
+    typeCompte = models.CharField(max_length=10, choices=[('STANDARD', 'Standard'), ('PREMIUM', 'Premium')],
+                                  default='STANDARD')
     is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=True)
+    is_admin = models.BooleanField(default=False)
     is_staff_member = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
@@ -49,9 +55,19 @@ class CustomUser(AbstractBaseUser):
     def is_staff(self):
         return self.is_staff_member
 
-    def add_licence(self, licence_id):
-        # Method to add a licence to the user
-        pass
+    def add_licence(self, licence):
+        if hasattr(self, 'licence') and self.licence is not None:
+            return "L'utilisateur possède déjà une licence."
+
+        if not licence.is_active or licence.date_exp < timezone.now().date():
+            return "Licence inactive ou expirée."
+
+        if licence.user is not None:
+            return "Licence déjà utilisée."
+
+        licence.user = self
+        licence.save()
+        return "Licence ajoutée avec succès."
 
     class Meta:
         verbose_name = 'User'

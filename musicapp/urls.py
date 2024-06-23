@@ -5,7 +5,8 @@ from rest_framework import routers
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
-from .views import MusicViewSet, PlaylistViewSet, FavoriViewSet
+from .views import MusicViewSet, PlaylistViewSet, FavoriViewSet, CreatePlaylistView, GetMyPlaylistsView, \
+    GetMyFavorisView, GetSchoolPlaylistsView
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -20,9 +21,13 @@ schema_view = get_schema_view(
 router = routers.DefaultRouter()
 router.register(r'musics', MusicViewSet, basename='music')
 router.register(r'playlists', PlaylistViewSet, basename='playlist')
-router.register(r'favoris', FavoriViewSet, basename='favori')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('create-playlist/', CreatePlaylistView.as_view(), name='create_playlist'),
+    path('get-school-playlists/', GetSchoolPlaylistsView.as_view(), name='get_school_playlists'),
+    path('get-my-playlists/', GetMyPlaylistsView.as_view(), name='get_my_playlists'),
+    path('get-my-favoris/', GetMyFavorisView.as_view(), name='get_my_favoris'),
+
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
