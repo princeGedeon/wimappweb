@@ -13,7 +13,6 @@ class Music(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     duree_enreg = models.IntegerField(help_text="Duration in seconds")
     ecoutes = models.IntegerField(default=0)
-    enreg_ID = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     interprete = models.CharField(max_length=255)
     isFree = models.BooleanField(default=True)
     lyrics_enreg = models.TextField(null=True, blank=True)
@@ -37,9 +36,11 @@ class Playlist(models.Model):
     def __str__(self):
         return self.nom
 
+
+
 class Favori(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='favoris')
-    music = models.ForeignKey(Music, on_delete=models.CASCADE, related_name='favoris')
+    musics = models.ManyToManyField(Music, related_name='favoris')
     title = models.CharField(max_length=255)
 
     def __str__(self):

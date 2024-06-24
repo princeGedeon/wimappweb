@@ -7,6 +7,7 @@ from rest_framework import serializers, generics, permissions, status
 from rest_framework.response import Response
 
 from licenceapp.models import Licence
+from licenceapp.serializers import LicenceSerializer
 from .models import CustomUser
 User = get_user_model()
 
@@ -36,3 +37,11 @@ class UserCreateSerializer(UserCreateSerializer):
         fields = ("id", "email", "fullname","password")
 
 
+
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    licences = LicenceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'fullname', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilUrl', 'typeCompte', 'is_active', 'is_admin', 'is_staff_member', 'is_superuser', 'licences']

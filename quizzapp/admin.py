@@ -7,9 +7,9 @@ from quizzapp.models import QuizScore, StudentAnswer, Choice, Question, Quiz
 
 @admin.register(Quiz)
 class QuizAdmin(admin.ModelAdmin):
-    list_display = ('title', 'created_by', 'classe', 'matiere', 'niveau', 'start_time', 'end_time', 'duration', 'is_active', 'is_public')
+    list_display = ('title', 'created_by', 'classe', 'matiere', 'niveau', 'start_time', 'end_time', 'duration', 'is_active', 'is_publied')
     search_fields = ('title', 'created_by__email', 'classe__name', 'matiere__name', 'niveau__name')
-    list_filter = ('is_active', 'is_public', 'classe', 'matiere', 'niveau')
+    list_filter = ('is_active', 'is_publied', 'classe', 'matiere', 'niveau')
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):

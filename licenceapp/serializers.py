@@ -3,32 +3,19 @@ from rest_framework import serializers
 from licenceapp.models import Licence
 from django.utils import timezone
 
-class AddLicenceSerializer(serializers.Serializer):
-    licence_valeur = serializers.CharField()
+from rest_framework import serializers
 
-    def validate(self, data):
-        licence_valeur = data.get('licence_valeur')
-        try:
-            licence = Licence.objects.get(valeur=licence_valeur)
-        except Licence.DoesNotExist:
-            raise serializers.ValidationError("Licence non trouvée.")
+class UploadLicencesSerializer(serializers.Serializer):
+    source_id = serializers.IntegerField()
+    file = serializers.FileField()
 
-        if licence.user is not None:
-            raise serializers.ValidationError("Licence déjà utilisée.")
+    def validate_file(self, value):
+        if not value.name.endswith('.xlsx'):
+            raise serializers.ValidationError('Invalid file format. Please upload an Excel file.')
+        return value
 
-        if not licence.is_active or licence.date_exp < timezone.now().date():
-            raise serializers.ValidationError("Licence inactive ou expirée.")
 
-        data['licence'] = licence
-        return data
-
-    def save(self, **kwargs):
-        user = self.context['request'].user
-        licence = self.validated_data['licence']
-
-        if hasattr(user, 'licence') and user.licence is not None:
-            raise serializers.ValidationError("L'utilisateur possède déjà une licence.")
-
-        licence.user = user
-        licence.save()
-        return licence
+class LicenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Licence
+        fields = '__all__'

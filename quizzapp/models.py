@@ -18,8 +18,8 @@ class Quiz(models.Model):
     end_time = models.DateTimeField()
     duration = models.IntegerField(help_text="Duration in minutes")
     is_active = models.BooleanField(default=True)
-    is_public = models.BooleanField(default=False)
-    background_music = models.ForeignKey(Music, on_delete=models.SET_NULL, null=True, blank=True)
+    is_publied = models.BooleanField(default=False)
+
 
     def deactivate(self):
         self.is_active = False

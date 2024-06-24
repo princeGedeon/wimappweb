@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
 
-
+from licenceapp.models import Licence
 
 
 class CustomUserManager(BaseUserManager):
@@ -36,6 +36,7 @@ class CustomUser(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     is_staff_member = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    licences = models.ManyToManyField(Licence, related_name='users', blank=True)
 
     objects = CustomUserManager()
 
@@ -56,19 +57,9 @@ class CustomUser(AbstractBaseUser):
         return self.is_staff_member
 
     def add_licence(self, licence):
-        if hasattr(self, 'licence') and self.licence is not None:
-            return "L'utilisateur possède déjà une licence."
-
-        if not licence.is_active or licence.date_exp < timezone.now().date():
-            return "Licence inactive ou expirée."
-
-        if licence.user is not None:
-            return "Licence déjà utilisée."
-
-        licence.user = self
-        licence.save()
-        return "Licence ajoutée avec succès."
-
-    class Meta:
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
+        if licence.is_assignable():
+            self.licences.add(licence)
+            licence.user = self
+            licence.save()
+            return "Licence ajoutée avec succès."
+        return "Licence non assignable."

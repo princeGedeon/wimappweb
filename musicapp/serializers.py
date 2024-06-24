@@ -18,4 +18,4 @@ class PlaylistSerializer(serializers.ModelSerializer):
 class FavoriSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favori
-        fields = '__all__'
+        fields = ['id', 'user', 'musics', 'title']

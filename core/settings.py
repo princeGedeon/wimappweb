@@ -46,11 +46,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "corsheaders",
     'rest_framework',
+    'import_export',
 'djoser',
     "social_django",
     "rest_framework_simplejwt.token_blacklist",
     'rest_framework_simplejwt',
     'drf_yasg',
+
 
 
     #----
@@ -225,7 +227,7 @@ DJOSER = {
     "USER_CREATE_PASSWORD_RETYPE": True,
     "USERNAME_CHANGED_EMAIL_CONFIRMATION": False,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,
-    "SEND_CONFIRMATION_EMAIL": False,
+    "SEND_CONFIRMATION_EMAIL": True,
     "SET_PASSWORD_RETYPE": True,
     "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
     "USERNAME_RESET_CONFIRM_URL": "",
@@ -243,25 +245,17 @@ DJOSER = {
 # Auth
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "djoser.social.backends.facebook.FacebookOAuth2Override",
-    "social_core.backends.google.GoogleOAuth2"
+
 ]
 #Google
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env("GOOGLE_CLIENT_ID")
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env("GOOGLE_SECRET")
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
-    "https://www.googleapis.com/auth/userinfo.email",
-    "https://www.googleapis.com/auth/userinfo.profile",
-    "openid",
-]
-SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ["fullname",]
+
 
 # Email
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'ssl0.ovh.net'
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = "contact@workinmusic.fr"
+EMAIL_HOST_USER = "guedjegedeon03@gmail.com"
 #'contacts@workinmusic.fr'ff
-EMAIL_HOST_PASSWORD ="Pazf54T9wE8yH8g"
+EMAIL_HOST_PASSWORD ="odtoljgqbzjdhcnh"
 EMAIL_USE_TLS = True  # Utilisez TLS pour sécuriser la connexion
