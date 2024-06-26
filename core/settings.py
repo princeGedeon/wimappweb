@@ -14,14 +14,28 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
-
+# settings.py
+import os
+import firebase_admin
+from firebase_admin import credentials
 env = environ.Env(
     # set casting, default value
     DEBUG=(bool, False)
 )
+
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+
+
+
+FIREBASE_ADMIN_CREDENTIAL = os.path.join(BASE_DIR, 'workinmusic-30b37-firebase-adminsdk-h7ihz-8152566065.json')
+
+cred = credentials.Certificate(FIREBASE_ADMIN_CREDENTIAL)
+firebase_admin.initialize_app(cred)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/

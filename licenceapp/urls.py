@@ -1,8 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from licenceapp.views import LicenceViewSet, AddLicenceKey,  UploadLicencesForStudentsView, \
-    UploadLicencesForTeachersView
+from licenceapp.views import LicenceViewSet, AddLicenceKey, UploadLicencesForStudentsView, \
+    UploadLicencesForTeachersView, UpdateLevelLicencesView
 
 router = DefaultRouter()
 
@@ -16,4 +16,6 @@ path('', include(router.urls)),
 
  path('upload-licences-students/', UploadLicencesForStudentsView.as_view(), name='upload-licences-students'),
     path('upload-licences-teachers/', UploadLicencesForTeachersView.as_view(), name='upload-licences-teachers'),
+path('update-level-licences/', UpdateLevelLicencesView.as_view(), name='update-licences'),
+
 ]

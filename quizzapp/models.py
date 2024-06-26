@@ -1,4 +1,7 @@
-from django.db import models
+import pandas as pd
+from django.db import models, transaction
+from rest_framework import status
+from rest_framework.response import Response
 
 from account.models import CustomUser
 from licenceapp.models import Classe, Matiere, Niveau
@@ -64,3 +67,4 @@ class QuizScore(models.Model):
 
     def __str__(self):
         return f"{self.student.email} - {self.quiz.title} - {self.score}"
+

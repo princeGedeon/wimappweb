@@ -23,7 +23,8 @@ from drf_yasg import openapi
 import pandas as pd
 from django.utils import timezone
 
-from licenceapp.models import Source, Matiere, Niveau,  Licence
+from licenceapp.models import Source, Matiere, Niveau, Licence, Classe
+
 
 class UploadLicencesForStudentsView(APIView):
     permission_classes = [IsAdminUser]
@@ -240,3 +241,90 @@ class LicenceViewSet(viewsets.ModelViewSet):
     queryset = Licence.objects.all()
     serializer_class = LicenceSerializer
     permission_classes = [IsAdminUser]
+
+
+
+class UpdateLevelLicencesView(APIView):
+    permission_classes = [IsAdminUser]
+    parser_classes = (MultiPartParser, FormParser)
+
+    @swagger_auto_schema(
+        operation_description="Update licences for users from an Excel file",
+        manual_parameters=[
+            openapi.Parameter('source_id', openapi.IN_FORM, description="ID of the source", type=openapi.TYPE_INTEGER, required=True),
+            openapi.Parameter('expiry_duration', openapi.IN_FORM, description="Duration of the licence in days", type=openapi.TYPE_INTEGER, required=True),
+            openapi.Parameter('file', openapi.IN_FORM, description="Excel file with user emails and types (enseignant/etudiant)", type=openapi.TYPE_FILE, required=True),
+        ],
+        responses={
+            200: openapi.Response('Licences updated successfully.'),
+            400: openapi.Response('Invalid request.'),
+            404: openapi.Response('Source not found.')
+        }
+    )
+    @transaction.atomic
+    def post(self, request):
+        source_id = request.data.get('source_id')
+        expiry_duration = request.data.get('expiry_duration')
+        file = request.FILES.get('file')
+
+        if not source_id or not expiry_duration or not file:
+            return Response({'detail': 'Source ID, expiry duration, and file are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            source = Source.objects.get(id=source_id)
+        except Source.DoesNotExist:
+            return Response({'detail': 'Source not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            data = pd.read_excel(file)
+        except Exception as e:
+            return Response({'detail': f'Invalid file format: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        licences_updated = 0
+        licences_created = 0
+
+        for index, row in data.iterrows():
+            email = row['email']
+            user_type = row['type']
+
+            classe_name = row.get('classe')
+            niveau_name = row.get('niveau')
+
+            try:
+                user = CustomUser.objects.get(email=email)
+            except CustomUser.DoesNotExist:
+                continue
+
+            if user.source.id != source.id:
+                continue
+
+            classe = None
+            if classe_name:
+                classe, _ = Classe.objects.get_or_create(name=classe_name)
+
+            niveau = None
+            if niveau_name:
+                niveau, _ = Niveau.objects.get_or_create(name=niveau_name)
+
+            licence = user.licences.filter(type=user_type).first()
+            if licence:
+                if classe:
+                    licence.classe = classe
+                if niveau:
+                    licence.niveau = niveau
+                licence.date_exp = timezone.now() + timezone.timedelta(days=int(expiry_duration))
+                licence.save()
+                licences_updated += 1
+            else:
+                licence = Licence.objects.create(
+                    date_exp=timezone.now() + timezone.timedelta(days=int(expiry_duration)),
+                    classe=classe,
+                    niveau=niveau,
+                    source=source,
+                    user=user,
+                    type=user_type
+                )
+                user.licences.add(licence)
+                licences_created += 1
+
+        return Response({'detail': f'{licences_updated} licences updated and {licences_created} licences created successfully.'}, status=status.HTTP_200_OK)
