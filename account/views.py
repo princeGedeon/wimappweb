@@ -1,9 +1,10 @@
 # Create your views here.
+from django.core.mail import send_mail
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, permissions
 from rest_framework.permissions import AllowAny
-from .models import CustomUser
+from .models import CustomUser, OTP
 from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer
 from django.conf import settings
 from firebase_admin import auth
@@ -14,6 +15,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from account.models import CustomUser
 from account.serializers import CustomUserCreateSerializer
 from firebase_admin import auth as firebase_auth
+import random
 
 class GoogleLoginAPIView(APIView):
     @swagger_auto_schema(
@@ -116,3 +118,55 @@ class CustomUserCreateView(generics.CreateAPIView):
     serializer_class = CustomUserCreateSerializer
     permission_classes = [AllowAny]
 
+
+class GenerateOTPAPIView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        if not email:
+            return Response({"detail": "Email requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response({"detail": "Utilisateur non trouvé."}, status=status.HTTP_404_NOT_FOUND)
+
+        otp_code = str(random.randint(100000, 999999))
+        OTP.objects.create(user=user, code=otp_code)
+
+        send_mail(
+            "Votre code de vérification",
+            f"Votre code de vérification est {otp_code}",
+            "from@example.com",
+            [email],
+        )
+
+        return Response({"detail": "OTP envoyé par email."}, status=status.HTTP_200_OK)
+
+
+class VerifyOTPAPIView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        otp_code = request.data.get("otp_code")
+
+        if not email or not otp_code:
+            return Response({"detail": "Email et OTP requis."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response({"detail": "Utilisateur non trouvé."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            otp = OTP.objects.get(user=user, code=otp_code)
+        except OTP.DoesNotExist:
+            return Response({"detail": "OTP invalide."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not otp.is_valid():
+            return Response({"detail": "OTP expiré."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.is_active = True
+        user.save()
+
+        otp.delete()
+
+        return Response({"detail": "Compte activé avec succès."}, status=status.HTTP_200_OK)
