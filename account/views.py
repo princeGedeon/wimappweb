@@ -120,6 +120,42 @@ class CustomUserCreateView(generics.CreateAPIView):
 
 
 class GenerateOTPAPIView(APIView):
+    @swagger_auto_schema(
+        operation_description="Générer et envoyer un OTP par email",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING, description='Adresse email de l\'utilisateur')
+            },
+            required=['email']
+        ),
+        responses={
+            200: openapi.Response(
+                description="OTP envoyé par email",
+                examples={
+                    "application/json": {
+                        "detail": "OTP envoyé par email."
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Requête invalide",
+                examples={
+                    "application/json": {
+                        "detail": "Email requis."
+                    }
+                }
+            ),
+            404: openapi.Response(
+                description="Utilisateur non trouvé",
+                examples={
+                    "application/json": {
+                        "detail": "Utilisateur non trouvé."
+                    }
+                }
+            ),
+        }
+    )
     def post(self, request):
         email = request.data.get("email")
         if not email:
@@ -144,6 +180,45 @@ class GenerateOTPAPIView(APIView):
 
 
 class VerifyOTPAPIView(APIView):
+    @swagger_auto_schema(
+        operation_description="Vérifier l'OTP et activer le compte utilisateur",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'email': openapi.Schema(type=openapi.TYPE_STRING, description='Adresse email de l\'utilisateur'),
+                'otp_code': openapi.Schema(type=openapi.TYPE_STRING, description='Code OTP reçu par email')
+            },
+            required=['email', 'otp_code']
+        ),
+        responses={
+            200: openapi.Response(
+                description="Compte activé avec succès",
+                examples={
+                    "application/json": {
+                        "detail": "Compte activé avec succès."
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Requête invalide",
+                examples={
+                    "application/json": {
+                        "detail": "Email et OTP requis.",
+                        "detail": "OTP invalide.",
+                        "detail": "OTP expiré."
+                    }
+                }
+            ),
+            404: openapi.Response(
+                description="Utilisateur non trouvé",
+                examples={
+                    "application/json": {
+                        "detail": "Utilisateur non trouvé."
+                    }
+                }
+            ),
+        }
+    )
     def post(self, request):
         email = request.data.get("email")
         otp_code = request.data.get("otp_code")
