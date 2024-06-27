@@ -253,22 +253,29 @@ class UpdateLevelLicencesView(APIView):
         manual_parameters=[
             openapi.Parameter('source_id', openapi.IN_FORM, description="ID of the source", type=openapi.TYPE_INTEGER, required=True),
             openapi.Parameter('expiry_duration', openapi.IN_FORM, description="Duration of the licence in days", type=openapi.TYPE_INTEGER, required=True),
-            openapi.Parameter('file', openapi.IN_FORM, description="Excel file with user emails and types (enseignant/etudiant)", type=openapi.TYPE_FILE, required=True),
+            openapi.Parameter('classe_name', openapi.IN_FORM, description="Name of the class", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('niveau_name', openapi.IN_FORM, description="Name of the level", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('user_type', openapi.IN_FORM, description="Type of the user (enseignant/etudiant)", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('file', openapi.IN_FORM, description="Excel file with user emails", type=openapi.TYPE_FILE, required=True),
         ],
         responses={
             200: openapi.Response('Licences updated successfully.'),
             400: openapi.Response('Invalid request.'),
-            404: openapi.Response('Source not found.')
+            404: openapi.Response('Source not found.'),
+            500: openapi.Response('Internal server error.')
         }
     )
     @transaction.atomic
     def post(self, request):
         source_id = request.data.get('source_id')
         expiry_duration = request.data.get('expiry_duration')
+        classe_name = request.data.get('classe_name')
+        niveau_name = request.data.get('niveau_name')
+        user_type = request.data.get('user_type')
         file = request.FILES.get('file')
 
-        if not source_id or not expiry_duration or not file:
-            return Response({'detail': 'Source ID, expiry duration, and file are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not source_id or not expiry_duration or not classe_name or not niveau_name or not user_type or not file:
+            return Response({'detail': 'Source ID, expiry duration, classe name, niveau name, user type, and file are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             source = Source.objects.get(id=source_id)
@@ -280,15 +287,21 @@ class UpdateLevelLicencesView(APIView):
         except Exception as e:
             return Response({'detail': f'Invalid file format: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            classe = Classe.objects.get(name=classe_name)
+        except Classe.DoesNotExist:
+            return Response({'detail': 'Class not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            niveau = Niveau.objects.get(name=niveau_name)
+        except Niveau.DoesNotExist:
+            return Response({'detail': 'Level not found.'}, status=status.HTTP_404_NOT_FOUND)
+
         licences_updated = 0
         licences_created = 0
 
         for index, row in data.iterrows():
             email = row['email']
-            user_type = row['type']
-
-            classe_name = row.get('classe')
-            niveau_name = row.get('niveau')
 
             try:
                 user = CustomUser.objects.get(email=email)
@@ -298,20 +311,10 @@ class UpdateLevelLicencesView(APIView):
             if user.source.id != source.id:
                 continue
 
-            classe = None
-            if classe_name:
-                classe, _ = Classe.objects.get_or_create(name=classe_name)
-
-            niveau = None
-            if niveau_name:
-                niveau, _ = Niveau.objects.get_or_create(name=niveau_name)
-
             licence = user.licences.filter(type=user_type).first()
             if licence:
-                if classe:
-                    licence.classe = classe
-                if niveau:
-                    licence.niveau = niveau
+                licence.classe = classe
+                licence.niveau = niveau
                 licence.date_exp = timezone.now() + timezone.timedelta(days=int(expiry_duration))
                 licence.save()
                 licences_updated += 1

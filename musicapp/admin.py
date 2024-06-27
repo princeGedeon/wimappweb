@@ -40,12 +40,20 @@ class MusicResource(resources.ModelResource):
         # Generate enreg_ID if not present
         if 'enreg_ID' not in row or not row['enreg_ID']:
             row['enreg_ID'] = str(uuid.uuid4())
+
 @admin.register(Music)
 class MusicAdmin(ImportExportModelAdmin):
     resource_class = MusicResource
     list_display = ('theme', 'beatmaker', 'interprete', 'date_created', 'isFree')
     search_fields = ('theme', 'beatmaker', 'interprete')
     list_filter = ('isFree', 'classe', 'style_enreg')
+    actions = ['download_files_from_urls']
+
+    def download_files_from_urls(self, request, queryset):
+        for music in queryset:
+            music.download_files()
+        self.message_user(request, "Files downloaded successfully from URLs.")
+    download_files_from_urls.short_description = "Download files from URLs"
 
 @admin.register(Playlist)
 class PlaylistAdmin(admin.ModelAdmin):

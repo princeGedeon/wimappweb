@@ -4,7 +4,10 @@ from django.db import models
 
 from account.models import CustomUser
 from licenceapp.models import Classe, Matiere
-
+import requests
+from django.core.files.base import ContentFile
+from urllib.parse import urlparse
+import os
 
 # Create your models here.
 class Music(models.Model):
@@ -21,9 +24,33 @@ class Music(models.Model):
     url_enreg = models.URLField()
     url_img = models.URLField(null=True, blank=True)
     url_mp3 = models.URLField()
+    file_enreg = models.FileField(upload_to='enreg/', null=True, blank=True)
+    file_img = models.FileField(upload_to='images/', null=True, blank=True)
+    file_mp3 = models.FileField(upload_to='mp3/', null=True, blank=True)
 
     def __str__(self):
         return self.theme
+
+    def download_files(self):
+
+
+        if self.url_img and not self.file_img:
+            response = requests.get(self.url_img)
+            if response.status_code == 200:
+                img_name = os.path.basename(urlparse(self.url_img).path)
+                self.file_img.save(img_name, ContentFile(response.content), save=True)
+
+        if self.url_enreg and not self.file_enreg:
+            response = requests.get(self.url_enreg)
+            if response.status_code == 200:
+                enreg_name = os.path.basename(urlparse(self.url_enreg).path)
+                self.file_enreg.save(enreg_name, ContentFile(response.content), save=True)
+
+        if self.url_mp3 and not self.file_mp3:
+            response = requests.get(self.url_mp3)
+            if response.status_code == 200:
+                mp3_name = os.path.basename(urlparse(self.url_mp3).path)
+                self.file_mp3.save(mp3_name, ContentFile(response.content), save=True)
 
 class Playlist(models.Model):
     nom = models.CharField(max_length=255)
