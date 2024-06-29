@@ -2,3 +2,7 @@ venv
 data
 .env
 ./workinmusic-30b37-firebase-adminsdk-h7ihz-8152566065.json
+account/migrations
+licenceapp/migrations
+quizzapp/migrations
+musicapp/migrations

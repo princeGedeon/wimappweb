@@ -45,6 +45,6 @@ urlpatterns = [
 path('quizz/', include('quizzapp.urls')),
 path('licence/', include('licenceapp.urls')),
 path('music/', include('musicapp.urls')),
-    path('auths/', include('account.urls'))
+    path('auths/', include('accountapp.urls'))
 
 ]

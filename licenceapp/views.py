@@ -1,29 +1,21 @@
-
-from rest_framework import viewsets
-
-
-from account.models import CustomUser
-
-from licenceapp.serializers import LicenceSerializer
-
-from rest_framework.permissions import IsAuthenticated
-
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework import status
+import pandas as pd
 from django.db import transaction
+from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
+from rest_framework import status, viewsets
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-import pandas as pd
-from django.utils import timezone
 
-from licenceapp.models import Source, Matiere, Niveau, Licence, Classe
+from accountapp.models import CustomUser
+from licenceapp.models import Source, Matiere, Licence
+from licenceapp.constants import NIVEAU_CHOICES, CLASSE_CHOICES
+from licenceapp.serializers import LicenceSerializer
+
 
 
 class UploadLicencesForStudentsView(APIView):
@@ -37,7 +29,13 @@ class UploadLicencesForStudentsView(APIView):
                 'source_id', openapi.IN_FORM, description="ID of the source", type=openapi.TYPE_INTEGER, required=True
             ),
             openapi.Parameter(
-                'file', openapi.IN_FORM, description="Excel file with user emails, subjects, levels", type=openapi.TYPE_FILE, required=True
+                'classe', openapi.IN_FORM, description="Class of the licence", type=openapi.TYPE_STRING, required=False, enum=[choice[0] for choice in CLASSE_CHOICES]
+            ),
+            openapi.Parameter(
+                'niveau', openapi.IN_FORM, description="Level of the licence", type=openapi.TYPE_STRING, required=False, enum=[choice[0] for choice in NIVEAU_CHOICES]
+            ),
+            openapi.Parameter(
+                'file', openapi.IN_FORM, description="Excel file with user emails and subjects", type=openapi.TYPE_FILE, required=True
             ),
             openapi.Parameter(
                 'num_licences', openapi.IN_FORM, description="Number of licences", type=openapi.TYPE_INTEGER, required=True
@@ -48,19 +46,24 @@ class UploadLicencesForStudentsView(APIView):
         ],
         responses={
             201: openapi.Response('Licences created and users notified.'),
-            400: openapi.Response('Source ID and file are required.'),
+            400: openapi.Response('Source ID, classe/niveau, and file are required.'),
             404: openapi.Response('Source not found.')
         }
     )
     @transaction.atomic
     def post(self, request):
         source_id = request.data.get('source_id')
+        classe = request.data.get('classe')
+        niveau = request.data.get('niveau')
         file = request.FILES.get('file')
         num_licences = request.data.get('num_licences')
         licence_duration = request.data.get('licence_duration')
 
-        if not source_id or not file or not num_licences or not licence_duration:
-            return Response({'detail': 'Source ID, file, number of licences, and licence duration are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not source_id or not (classe or niveau) or not file or not num_licences or not licence_duration:
+            return Response({'detail': 'Source ID, classe or niveau, file, number of licences, and licence duration are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if classe and niveau:
+            return Response({'detail': 'Only one of classe or niveau can be set.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             source = Source.objects.get(id=source_id)
@@ -77,7 +80,6 @@ class UploadLicencesForStudentsView(APIView):
         for index, row in data.iterrows():
             email = row['email']
             matiere_name = row['matiere']
-            niveau_name = row['niveau']
 
             try:
                 user = CustomUser.objects.get(email=email)
@@ -88,12 +90,11 @@ class UploadLicencesForStudentsView(APIView):
                 continue
 
             matiere, _ = Matiere.objects.get_or_create(name=matiere_name)
-            niveau, _ = Niveau.objects.get_or_create(name=niveau_name)
 
             licence = Licence.objects.create(
                 date_exp=timezone.now() + timezone.timedelta(days=int(licence_duration)),
-                classe=source.classe,
-                niveau=niveau,
+                classe=classe if classe else None,
+                niveau=niveau if niveau else None,
                 source=source,
                 user=user,
                 type='etudiant'
@@ -124,7 +125,13 @@ class UploadLicencesForTeachersView(APIView):
                 'source_id', openapi.IN_FORM, description="ID of the source", type=openapi.TYPE_INTEGER, required=True
             ),
             openapi.Parameter(
-                'file', openapi.IN_FORM, description="Excel file with user emails, subjects, levels, duration of stay", type=openapi.TYPE_FILE, required=True
+                'classe', openapi.IN_FORM, description="Class of the licence", type=openapi.TYPE_STRING, required=False, enum=[choice[0] for choice in CLASSE_CHOICES]
+            ),
+            openapi.Parameter(
+                'niveau', openapi.IN_FORM, description="Level of the licence", type=openapi.TYPE_STRING, required=False, enum=[choice[0] for choice in NIVEAU_CHOICES]
+            ),
+            openapi.Parameter(
+                'file', openapi.IN_FORM, description="Excel file with user emails, subjects, and duration of stay", type=openapi.TYPE_FILE, required=True
             ),
             openapi.Parameter(
                 'num_licences', openapi.IN_FORM, description="Number of licences", type=openapi.TYPE_INTEGER, required=True
@@ -135,19 +142,24 @@ class UploadLicencesForTeachersView(APIView):
         ],
         responses={
             201: openapi.Response('Licences created and users notified.'),
-            400: openapi.Response('Source ID and file are required.'),
+            400: openapi.Response('Source ID, classe/niveau, and file are required.'),
             404: openapi.Response('Source not found.')
         }
     )
     @transaction.atomic
     def post(self, request):
         source_id = request.data.get('source_id')
+        classe = request.data.get('classe')
+        niveau = request.data.get('niveau')
         file = request.FILES.get('file')
         num_licences = request.data.get('num_licences')
         licence_duration = request.data.get('licence_duration')
 
-        if not source_id or not file or not num_licences or not licence_duration:
-            return Response({'detail': 'Source ID, file, number of licences, and licence duration are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not source_id or not (classe or niveau) or not file or not num_licences or not licence_duration:
+            return Response({'detail': 'Source ID, classe or niveau, file, number of licences, and licence duration are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if classe and niveau:
+            return Response({'detail': 'Only one of classe or niveau can be set.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             source = Source.objects.get(id=source_id)
@@ -164,7 +176,6 @@ class UploadLicencesForTeachersView(APIView):
         for index, row in data.iterrows():
             email = row['email']
             matiere_name = row['matiere']
-            niveau_name = row['niveau']
             duree_sejour = row['duree_sejour']  # Additional information
 
             try:
@@ -176,16 +187,14 @@ class UploadLicencesForTeachersView(APIView):
                 continue
 
             matiere, _ = Matiere.objects.get_or_create(name=matiere_name)
-            niveau, _ = Niveau.objects.get_or_create(name=niveau_name)
 
             licence = Licence.objects.create(
                 date_exp=timezone.now() + timezone.timedelta(days=int(licence_duration)),
-                classe=source.classe,
-                niveau=niveau,
+                classe=classe if classe else None,
+                niveau=niveau if niveau else None,
                 source=source,
                 user=user,
-                type='enseignant',
-                duree_sejour=duree_sejour
+                type='enseignant'
             )
 
             user.licences.add(licence)
@@ -200,7 +209,6 @@ class UploadLicencesForTeachersView(APIView):
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [email]
         send_mail(subject, message, email_from, recipient_list)
-
 
 class AddLicenceKey(APIView):
     permission_classes = [IsAuthenticated]
@@ -242,8 +250,6 @@ class LicenceViewSet(viewsets.ModelViewSet):
     serializer_class = LicenceSerializer
     permission_classes = [IsAdminUser]
 
-
-
 class UpdateLevelLicencesView(APIView):
     permission_classes = [IsAdminUser]
     parser_classes = (MultiPartParser, FormParser)
@@ -253,8 +259,8 @@ class UpdateLevelLicencesView(APIView):
         manual_parameters=[
             openapi.Parameter('source_id', openapi.IN_FORM, description="ID of the source", type=openapi.TYPE_INTEGER, required=True),
             openapi.Parameter('expiry_duration', openapi.IN_FORM, description="Duration of the licence in days", type=openapi.TYPE_INTEGER, required=True),
-            openapi.Parameter('classe_name', openapi.IN_FORM, description="Name of the class", type=openapi.TYPE_STRING, required=True),
-            openapi.Parameter('niveau_name', openapi.IN_FORM, description="Name of the level", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('classe', openapi.IN_FORM, description="Name of the class", type=openapi.TYPE_STRING, required=False, enum=[choice[0] for choice in CLASSE_CHOICES]),
+            openapi.Parameter('niveau', openapi.IN_FORM, description="Name of the level", type=openapi.TYPE_STRING, required=False, enum=[choice[0] for choice in NIVEAU_CHOICES]),
             openapi.Parameter('user_type', openapi.IN_FORM, description="Type of the user (enseignant/etudiant)", type=openapi.TYPE_STRING, required=True),
             openapi.Parameter('file', openapi.IN_FORM, description="Excel file with user emails", type=openapi.TYPE_FILE, required=True),
         ],
@@ -269,13 +275,16 @@ class UpdateLevelLicencesView(APIView):
     def post(self, request):
         source_id = request.data.get('source_id')
         expiry_duration = request.data.get('expiry_duration')
-        classe_name = request.data.get('classe_name')
-        niveau_name = request.data.get('niveau_name')
+        classe = request.data.get('classe')
+        niveau = request.data.get('niveau')
         user_type = request.data.get('user_type')
         file = request.FILES.get('file')
 
-        if not source_id or not expiry_duration or not classe_name or not niveau_name or not user_type or not file:
-            return Response({'detail': 'Source ID, expiry duration, classe name, niveau name, user type, and file are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not source_id or not expiry_duration or not user_type or not file or not (classe or niveau):
+            return Response({'detail': 'Source ID, expiry duration, user type, and file are required. One of classe or niveau must be set.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if classe and niveau:
+            return Response({'detail': 'Only one of classe or niveau can be set.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             source = Source.objects.get(id=source_id)
@@ -286,16 +295,6 @@ class UpdateLevelLicencesView(APIView):
             data = pd.read_excel(file)
         except Exception as e:
             return Response({'detail': f'Invalid file format: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            classe = Classe.objects.get(name=classe_name)
-        except Classe.DoesNotExist:
-            return Response({'detail': 'Class not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            niveau = Niveau.objects.get(name=niveau_name)
-        except Niveau.DoesNotExist:
-            return Response({'detail': 'Level not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         licences_updated = 0
         licences_created = 0
@@ -313,16 +312,18 @@ class UpdateLevelLicencesView(APIView):
 
             licence = user.licences.filter(type=user_type).first()
             if licence:
-                licence.classe = classe
-                licence.niveau = niveau
+                if classe:
+                    licence.classe = classe
+                if niveau:
+                    licence.niveau = niveau
                 licence.date_exp = timezone.now() + timezone.timedelta(days=int(expiry_duration))
                 licence.save()
                 licences_updated += 1
             else:
                 licence = Licence.objects.create(
                     date_exp=timezone.now() + timezone.timedelta(days=int(expiry_duration)),
-                    classe=classe,
-                    niveau=niveau,
+                    classe=classe if classe else None,
+                    niveau=niveau if niveau else None,
                     source=source,
                     user=user,
                     type=user_type

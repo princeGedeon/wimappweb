@@ -3,25 +3,32 @@ from django.db import models, transaction
 from rest_framework import status
 from rest_framework.response import Response
 
-from account.models import CustomUser
-from licenceapp.models import Classe, Matiere, Niveau
+from accountapp.models import CustomUser
+from licenceapp.constants import CLASSE_CHOICES, NIVEAU_CHOICES
+from licenceapp.models import  Matiere
 from musicapp.models import Music
 
 
 # Create your models here.
 
 class Quiz(models.Model):
+    STATUS_CHOICES = [
+        ('IS_PENDING', 'Pending'),
+        ('IS_PLAYED', 'Played'),
+        ('IS_FINISHED', 'Finished'),
+    ]
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
-    created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='quizzes')
-    classe = models.ForeignKey(Classe, on_delete=models.CASCADE)
+    created_user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='quizzes')
+    classe = models.CharField(max_length=10, choices=CLASSE_CHOICES)
     matiere = models.ForeignKey(Matiere, on_delete=models.CASCADE)
-    niveau = models.ForeignKey(Niveau, on_delete=models.CASCADE)
+    niveau = models.CharField(max_length=10, choices=NIVEAU_CHOICES)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     duration = models.IntegerField(help_text="Duration in minutes")
     is_active = models.BooleanField(default=True)
     is_publied = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='IS_PENDING')
 
 
     def deactivate(self):

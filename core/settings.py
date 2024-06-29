@@ -58,19 +58,30 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'allauth',
+    'allauth.account',
+
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.apple',
+
     "corsheaders",
     'rest_framework',
+    'oauth2_provider',
+    'social_django',
+    'rest_framework_social_oauth2',
+
     'import_export',
 'djoser',
-    "social_django",
+
     "rest_framework_simplejwt.token_blacklist",
     'rest_framework_simplejwt',
+    "rest_framework.authtoken",
     'drf_yasg',
 
 
 
     #----
-    "account",
+    "accountapp",
     "licenceapp",
     "musicapp",
     "quizzapp"
@@ -81,6 +92,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 'corsheaders.middleware.CorsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     "social_django.middleware.SocialAuthExceptionMiddleware",
@@ -91,6 +103,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'core.urls'
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -98,6 +111,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -113,11 +127,15 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
+        'rest_framework_social_oauth2.authentication.SocialAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     ),
 }
+
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
@@ -232,7 +250,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
-AUTH_USER_MODEL = 'account.CustomUser'
+AUTH_USER_MODEL = 'accountapp.CustomUser'
 CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://app.workinmusic.fr","http://app.workinmusic.fr"]
 
 #Djsoer
@@ -250,19 +268,24 @@ DJOSER = {
     "SOCIAL_AUTH_TOKEN_STRATEGY": "djoser.social.token.jwt.TokenStrategy",
     "SOCIAL_AUTH_ALLOWED_REDIRECT_URIS": ["http://localhost:3000","https://workinmusic.fr"],
     "SERIALIZERS": {
-        "user_create": "account.serializers.CustomUserCreateSerializer",
-        "user": "account.serializers.CustomUserUpdateSerializer",
-        "current_user": "account.serializers.CustomUserUpdateSerializer",
+        "user_create": "accountapp.serializers.CustomUserCreateSerializer",
+        "user": "accountapp.serializers.CustomUserUpdateSerializer",
+        "current_user": "accountapp.serializers.CustomUserUpdateSerializer",
         "user_delete": "djoser.serializers.UserDeleteSerializer",
     },
 }
 # Auth
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',
+    'allauth.account.auth_backends.AuthenticationBackend',
+
 
 ]
 #Google
-
+SOCIAL_AUTH_AUTHENTICATION_BACKENDS = (
+    'social_core.backends.apple.AppleIdAuth',
+)
 
 # Email
 
@@ -273,3 +296,32 @@ EMAIL_HOST_USER = "guedjegedeon03@gmail.com"
 #'contacts@workinmusic.fr'ff
 EMAIL_HOST_PASSWORD ="odtoljgqbzjdhcnh"
 EMAIL_USE_TLS = True  # Utilisez TLS pour sécuriser la connexion
+#-------------------
+
+SOCIAL_AUTH_APPLE_ID_CLIENT = env('SOCIAL_AUTH_APPLE_ID_CLIENT')
+SOCIAL_AUTH_APPLE_ID_TEAM = env('SOCIAL_AUTH_APPLE_ID_TEAM')          # Your Team ID, ie K2232113
+SOCIAL_AUTH_APPLE_ID_KEY = env('SOCIAL_AUTH_APPLE_ID_KEY')                # Your Key ID, ie Y2P99J3N81K
+SOCIAL_AUTH_APPLE_ID_SECRET = """
+-----BEGIN PRIVATE KEY-----
+MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgmyF9+Du/EojT0Qpr
+SnPOCeb8TZu13NqB0xjvWLwYODGgCgYIKoZIzj0DAQehRANCAAQ/0HDCJPQW/fDV
+RpU6xfkc30bDtL6VVDL9PxKcUhMr07Z7WKiTwx5Qf1h5FHbeHL9MKL72W652DugD
+pIk4fLQk
+-----END PRIVATE KEY-----"""
+SOCIAL_AUTH_APPLE_ID_SCOPE = ['email', 'name']
+SOCIAL_AUTH_APPLE_ID_EMAIL_AS_USERNAME = True
+
+
+SOCIALACCOUNT_PROVIDERS = {
+    'apple': {
+        'APP': {
+            'client_id': SOCIAL_AUTH_APPLE_ID_CLIENT,
+            'secret': {
+                'key': SOCIAL_AUTH_APPLE_ID_KEY,
+                'team_id': SOCIAL_AUTH_APPLE_ID_TEAM,
+                'private_key': SOCIAL_AUTH_APPLE_ID_SECRET,
+            },
+        }
+    }
+}
+#------------

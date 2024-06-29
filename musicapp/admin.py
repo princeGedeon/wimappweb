@@ -6,26 +6,18 @@ from django.contrib import admin
 from django.contrib import admin
 from import_export.widgets import ForeignKeyWidget
 
-from licenceapp.models import Classe
+
 from .models import Music, Playlist, Favori
 from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
 from .models import Music
 
-class ClasseWidget(ForeignKeyWidget):
-    def clean(self, value, row=None, *args, **kwargs):
-        if not value:
-            return None
-        classe, created = Classe.objects.get_or_create(name=value)
-        return classe
+
 
 class MusicResource(resources.ModelResource):
-    classe = fields.Field(
-        column_name='classe',
-        attribute='classe',
-        widget=ClasseWidget(Classe, 'name')
-    )
+
+
     enreg_ID = fields.Field(
         column_name='enreg_ID',
         attribute='id'
@@ -57,8 +49,8 @@ class MusicAdmin(ImportExportModelAdmin):
 
 @admin.register(Playlist)
 class PlaylistAdmin(admin.ModelAdmin):
-    list_display = ('nom', 'is_public', 'classe', 'matiere', 'created_by')
-    search_fields = ('nom', 'created_by__email')
+    list_display = ('nom', 'is_public', 'classe', 'matiere',)
+    search_fields = ('nom', )
     list_filter = ('is_public', 'classe', 'matiere')
     filter_horizontal = ('musics',)
 

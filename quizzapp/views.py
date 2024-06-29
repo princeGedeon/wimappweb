@@ -9,17 +9,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from licenceapp import permissions
-from licenceapp.models import Niveau, Classe, Matiere
+from licenceapp.constants import CLASSE_CHOICES, NIVEAU_CHOICES
+from licenceapp.models import Matiere
 from licenceapp.permissions import ValidLicencePermission, TeacherLicencePermission
 from quizzapp.models import Quiz, Choice, Question
 from quizzapp.serializers import QuizDetailSerializer, QuizCreateSerializer
 
 
-# Create your views here.
 class MyQuizListView(generics.ListAPIView):
     serializer_class = QuizDetailSerializer
-    permission_classes = [IsAuthenticated,ValidLicencePermission]
+    permission_classes = [IsAuthenticated, ValidLicencePermission]
 
     def get_queryset(self):
         user = self.request.user
@@ -74,16 +73,12 @@ class QuizDeleteView(generics.DestroyAPIView):
     def get_queryset(self):
         return Quiz.objects.filter(created_by=self.request.user)
 
-
-
 class CreatedQuizListView(generics.ListAPIView):
     serializer_class = QuizDetailSerializer
     permission_classes = [IsAuthenticated, TeacherLicencePermission]
 
     def get_queryset(self):
         return Quiz.objects.filter(created_by=self.request.user)
-
-
 
 class ImportCreateQuizView(APIView):
     permission_classes = [IsAuthenticated, TeacherLicencePermission]
@@ -94,9 +89,9 @@ class ImportCreateQuizView(APIView):
         manual_parameters=[
             openapi.Parameter('title', openapi.IN_FORM, description="Title of the quiz", type=openapi.TYPE_STRING, required=True),
             openapi.Parameter('description', openapi.IN_FORM, description="Description of the quiz", type=openapi.TYPE_STRING, required=False),
-            openapi.Parameter('classe', openapi.IN_FORM, description="Class of the quiz", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('classe', openapi.IN_FORM, description="Class of the quiz", type=openapi.TYPE_STRING, required=False, enum=[choice[0] for choice in CLASSE_CHOICES]),
             openapi.Parameter('matiere', openapi.IN_FORM, description="Subject of the quiz", type=openapi.TYPE_STRING, required=True),
-            openapi.Parameter('niveau', openapi.IN_FORM, description="Level of the quiz", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('niveau', openapi.IN_FORM, description="Level of the quiz", type=openapi.TYPE_STRING, required=False, enum=[choice[0] for choice in NIVEAU_CHOICES]),
             openapi.Parameter('start_time', openapi.IN_FORM, description="Start time of the quiz", type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME, required=True),
             openapi.Parameter('end_time', openapi.IN_FORM, description="End time of the quiz", type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME, required=True),
             openapi.Parameter('duration', openapi.IN_FORM, description="Duration of the quiz in minutes", type=openapi.TYPE_INTEGER, required=True),
@@ -119,23 +114,18 @@ class ImportCreateQuizView(APIView):
         duration = request.data.get('duration')
         file = request.FILES.get('file')
 
-        if not all([title, classe_name, matiere_name, niveau_name, start_time, end_time, duration, file]):
-            return Response({'detail': 'All parameters are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not all([title, matiere_name, start_time, end_time, duration, file]):
+            return Response({'detail': 'All parameters are required except classe and niveau, one of them must be set.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            classe = Classe.objects.get(name=classe_name)
-        except Classe.DoesNotExist:
-            return Response({'detail': 'Class not found.'}, status=status.HTTP_404_NOT_FOUND)
+        if not classe_name and not niveau_name:
+            return Response({'detail': 'Either classe or niveau must be set.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            matiere = Matiere.objects.get(name=matiere_name)
-        except Matiere.DoesNotExist:
+        if classe_name and niveau_name:
+            return Response({'detail': 'Only one of classe or niveau can be set.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        matiere = Matiere.objects.filter(name=matiere_name).first()
+        if not matiere:
             return Response({'detail': 'Subject not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            niveau = Niveau.objects.get(name=niveau_name)
-        except Niveau.DoesNotExist:
-            return Response({'detail': 'Level not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             data = pd.read_excel(file)
@@ -149,9 +139,9 @@ class ImportCreateQuizView(APIView):
                 title=title,
                 description=description,
                 created_by=user,
-                classe=classe,
+                classe=classe_name,
                 matiere=matiere,
-                niveau=niveau,
+                niveau=niveau_name,
                 start_time=start_time,
                 end_time=end_time,
                 duration=duration,
