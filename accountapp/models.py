@@ -38,6 +38,7 @@ class CustomUser(AbstractBaseUser):
     is_staff_member = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     licences = models.ManyToManyField(Licence, related_name='users', blank=True)
+    fcm=models.CharField(max_length=10, null=True, blank=True)
 
     objects = CustomUserManager()
 

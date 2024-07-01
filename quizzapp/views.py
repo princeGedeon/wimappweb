@@ -39,7 +39,7 @@ class CreateQuizView(generics.CreateAPIView):
         responses={201: QuizDetailSerializer()}
     )
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        serializer.save(created_user=self.request.user)
 
 class PublicQuizListView(generics.ListAPIView):
     serializer_class = QuizDetailSerializer
@@ -71,14 +71,14 @@ class QuizDeleteView(generics.DestroyAPIView):
     permission_classes = [IsAuthenticated, TeacherLicencePermission]
 
     def get_queryset(self):
-        return Quiz.objects.filter(created_by=self.request.user)
+        return Quiz.objects.filter(created_user=self.request.user)
 
 class CreatedQuizListView(generics.ListAPIView):
     serializer_class = QuizDetailSerializer
     permission_classes = [IsAuthenticated, TeacherLicencePermission]
 
     def get_queryset(self):
-        return Quiz.objects.filter(created_by=self.request.user)
+        return Quiz.objects.filter(created_user=self.request.user)
 
 class ImportCreateQuizView(APIView):
     permission_classes = [IsAuthenticated, TeacherLicencePermission]

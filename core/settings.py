@@ -58,17 +58,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'allauth',
-    'allauth.account',
 
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.apple',
 
     "corsheaders",
     'rest_framework',
-    'oauth2_provider',
+
     'social_django',
-    'rest_framework_social_oauth2',
+
 
     'import_export',
 'djoser',
@@ -92,7 +88,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 'corsheaders.middleware.CorsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     "social_django.middleware.SocialAuthExceptionMiddleware",
@@ -127,7 +122,7 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
+       # 'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
         'rest_framework_social_oauth2.authentication.SocialAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
@@ -278,14 +273,14 @@ DJOSER = {
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     'rest_framework_social_oauth2.backends.DjangoOAuth2',
-    'allauth.account.auth_backends.AuthenticationBackend',
+
 
 
 ]
 #Google
-SOCIAL_AUTH_AUTHENTICATION_BACKENDS = (
+"""SOCIAL_AUTH_AUTHENTICATION_BACKENDS = (
     'social_core.backends.apple.AppleIdAuth',
-)
+)"""
 
 # Email
 

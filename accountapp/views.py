@@ -1,5 +1,4 @@
 # Create your views here.
-from allauth.socialaccount.providers.apple.views import AppleOAuth2Adapter
 from django.core.mail import send_mail
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -17,7 +16,7 @@ from accountapp.models import CustomUser
 from accountapp.serializers import CustomUserCreateSerializer
 from firebase_admin import auth as firebase_auth
 import random
-from dj_rest_auth.registration.views import SocialLoginView
+
 class GoogleLoginAPIView(APIView):
     @swagger_auto_schema(
         operation_description="Authentifier un utilisateur avec le jeton d'identification Google",
@@ -248,5 +247,6 @@ class VerifyOTPAPIView(APIView):
         return Response({"detail": "Compte activé avec succès."}, status=status.HTTP_200_OK)
 
 
-class AppleLogin(SocialLoginView):
+"""class AppleLogin(SocialLoginView):
     adapter_class = AppleOAuth2Adapter
+"""

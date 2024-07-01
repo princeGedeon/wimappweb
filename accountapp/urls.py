@@ -3,12 +3,12 @@ from django.urls import include, path
 
 
 from accountapp.views import UpdateUserInfoView, CustomUserCreateView, GoogleLoginAPIView, GenerateOTPAPIView, \
-    VerifyOTPAPIView, AppleLogin
+    VerifyOTPAPIView
 
 urlpatterns = [
-    path(r'rauth/social', include('rest_framework_social_oauth2.urls')),
-    path('auth/apple/', AppleLogin.as_view(), name='apple_login'),
-    path('auth/social/', include('allauth.urls')),
+
+
+
     path(r'', include('djoser.urls')),
     path(r'', include('djoser.urls.jwt')),
     path('updateInfosUser/', UpdateUserInfoView.as_view(), name='update_user_info'),
