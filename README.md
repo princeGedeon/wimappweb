@@ -1,4 +1,4 @@
-# API WimApp (
+# API WimApp 
 
 ## Configuration du Projet Django 
 
