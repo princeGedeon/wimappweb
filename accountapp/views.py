@@ -80,7 +80,7 @@ class GoogleLoginAPIView(APIView):
     )
     def post(self, request):
         id_token = request.data.get("id_token")
-
+        print(id_token)
         if not id_token:
             return Response({"detail": "Jeton d'identification requis."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -98,7 +98,8 @@ class GoogleLoginAPIView(APIView):
                 user_data = {
                     "email": email,
                     "password": None,  # Vous pouvez générer un mot de passe aléatoire si nécessaire
-                    "fullname": decoded_token.get('name', ''),
+                    "username": decoded_token.get('name', ''),
+                    'age':None, 'genre':None, 'numTel':"", 'pays':"", 'ville':"", 'typeCompte':"STANDARD"
                 }
                 serializer = CustomUserCreateSerializer(data=user_data)
                 if serializer.is_valid():
