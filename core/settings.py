@@ -18,21 +18,17 @@ import environ
 import os
 import firebase_admin
 from firebase_admin import credentials
-env = environ.Env(
-    # set casting, default value
-    DEBUG=(bool, False)
-)
+import os
+from storages.backends.s3boto3 import S3Boto3Storage
 
-
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 
 
 
-#FIREBASE_ADMIN_CREDENTIAL = os.path.join(BASE_DIR, 'workinmusic-30b37-firebase-adminsdk-h7ihz-8152566065.json')
 
 #cred = credentials.Certificate(FIREBASE_ADMIN_CREDENTIAL)
 #firebase_admin.initialize_app(cred)
@@ -58,10 +54,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'storages',
 
     "corsheaders",
     'rest_framework',
+'dj_rest_auth',
+    'dj_rest_auth.registration',
 
     'social_django',
 
@@ -84,10 +85,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 'corsheaders.middleware.CorsMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     "social_django.middleware.SocialAuthExceptionMiddleware",
@@ -272,6 +273,7 @@ DJOSER = {
 # Auth
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    'allauth.account.auth_backends.AuthenticationBackend',
    # 'rest_framework_social_oauth2.backends.DjangoOAuth2',
 
 
@@ -319,4 +321,49 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
-#------------
+
+# settings.py
+
+# Import necessary modules
+
+if config("mode")=="prod":
+    FIREBASE_ADMIN_CREDENTIAL = os.path.join(BASE_DIR, 'workinmusic-30b37-firebase-adminsdk-h7ihz-8152566065.json')
+
+    # Set the required AWS credentials
+    AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME")
+
+    # Optional: Set custom domain for static and media files
+    # AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+
+    # Set the static and media files locations
+    STATICFILES_LOCATION = 'static'
+    MEDIAFILES_LOCATION = 'media'
+
+    # Define custom storage classes for static and media files
+    class StaticStorage(S3Boto3Storage):
+        location = STATICFILES_LOCATION
+
+    class MediaStorage(S3Boto3Storage):
+        location = MEDIAFILES_LOCATION
+        file_overwrite = False
+
+    # Configure static and media files storage
+    STATICFILES_STORAGE = 'core.settings.StaticStorage'
+    DEFAULT_FILE_STORAGE = 'core.settings.MediaStorage'
+
+    # Set static and media URLs
+    STATIC_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{STATICFILES_LOCATION}/'
+    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/{MEDIAFILES_LOCATION}/'
+    #------------
+
+# Configure dj-rest-auth and allauth
+ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_EMAIL_REQUIRED = False
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_STORE_TOKENS = True
+LOGIN_REDIRECT_URL = '/'
+REST_USE_JWT = True

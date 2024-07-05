@@ -3,12 +3,11 @@ from django.urls import include, path
 
 
 from accountapp.views import UpdateUserInfoView, CustomUserCreateView, GoogleLoginAPIView, GenerateOTPAPIView, \
-    VerifyOTPAPIView
+    VerifyOTPAPIView, AppleLogin,AssignTuteurView
 
 urlpatterns = [
-
-
-
+path('assign-tuteur/', AssignTuteurView.as_view(), name='assign_tuteur'),
+    path('api/auth/apple/', AppleLogin.as_view(), name='apple_login'),
     path(r'', include('djoser.urls')),
     path(r'', include('djoser.urls.jwt')),
     path('updateInfosUser/', UpdateUserInfoView.as_view(), name='update_user_info'),

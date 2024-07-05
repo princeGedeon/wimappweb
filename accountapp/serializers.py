@@ -18,6 +18,11 @@ from rest_framework import serializers
 
 from django.utils import timezone
 
+
+class AssignTuteurSerializer(serializers.Serializer):
+    tuteur_token = serializers.CharField()
+
+
 class CustomUserCreateSerializer(BaseUserCreateSerializer):
     class Meta(BaseUserCreateSerializer.Meta):
         model = CustomUser

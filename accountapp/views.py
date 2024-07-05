@@ -1,21 +1,36 @@
 # Create your views here.
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, permissions
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from .models import CustomUser, OTP
-from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer
+from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer, AssignTuteurSerializer
 from django.conf import settings
 from firebase_admin import auth
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from accountapp.models import CustomUser
 from accountapp.serializers import CustomUserCreateSerializer
 from firebase_admin import auth as firebase_auth
 import random
+
+from allauth.socialaccount.providers.apple.views import AppleOAuth2Adapter
+from dj_rest_auth.registration.views import SocialLoginView
+
+class AppleLogin(SocialLoginView):
+    adapter_class = AppleOAuth2Adapter
+
+    def post(self, request, *args, **kwargs):
+        id_token = request.data.get('id_token')
+        print("ID Token:", id_token)  # Debugging: Print the id_token to verify
+        return super().post(request, *args, **kwargs)
+
 
 class GoogleLoginAPIView(APIView):
     @swagger_auto_schema(
@@ -247,6 +262,48 @@ class VerifyOTPAPIView(APIView):
         return Response({"detail": "Compte activé avec succès."}, status=status.HTTP_200_OK)
 
 
+
 """class AppleLogin(SocialLoginView):
     adapter_class = AppleOAuth2Adapter
 """
+
+
+
+
+class AssignTuteurView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+        operation_description="Assigner un tuteur à un utilisateur",
+        request_body=AssignTuteurSerializer,
+        responses={
+            200: openapi.Response("Tuteur assigné avec succès."),
+            400: openapi.Response("Requête invalide."),
+            500: openapi.Response("Erreur interne du serveur.")
+        }
+    )
+    def post(self, request):
+        try:
+            tuteur_token = request.data.get('tuteur_token')
+
+            if not tuteur_token:
+                return Response({'error': 'Le token tuteur_token est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            tuteur_data = AccessToken(tuteur_token)
+            tuteur_id = tuteur_data['user_id']
+
+            tuteur = CustomUser.objects.get(id=tuteur_id)
+            user = request.user
+
+            if user.age is not None and user.age <= 15:
+                user.tuteur = tuteur
+                user.save()
+                return Response({'success': 'Tuteur assigné avec succès.'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'L\'âge de l\'utilisateur doit être de 15 ans ou moins pour assigner un tuteur.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except (ObjectDoesNotExist, KeyError):
+            return Response({'error': 'Token tuteur fourni invalide.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
