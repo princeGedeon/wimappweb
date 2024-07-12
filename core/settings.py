@@ -159,6 +159,12 @@ SWAGGER_SETTINGS = {
 if config("mode")=="prod":
     DATABASES = {
         'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+    """DATABASES = {
+        'default': {
             'ENGINE': 'django.db.backends.mysql',
             'NAME': config('NAME'),
             'USER': config('USER'),
@@ -173,7 +179,7 @@ if config("mode")=="prod":
             },
             # Change to your MySQL port if needed
         }
-    }
+    }"""
 else:
 
     DATABASES = {
