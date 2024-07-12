@@ -87,6 +87,7 @@ class GoogleLoginAPIView(APIView):
         try:
             # Vérifier le jeton avec Firebase Admin SDK
             decoded_token = firebase_auth.verify_id_token(id_token)
+            print(decoded_token)
             email = decoded_token['email']
             google_user_id = decoded_token['uid']
 
@@ -182,7 +183,7 @@ class GenerateOTPAPIView(APIView):
         except CustomUser.DoesNotExist:
             return Response({"detail": "Utilisateur non trouvé."}, status=status.HTTP_404_NOT_FOUND)
 
-        otp_code = str(random.randint(100000, 999999))
+        otp_code = str(random.randint(1000, 9999))
         OTP.objects.create(user=user, code=otp_code)
 
         send_mail(
