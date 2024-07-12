@@ -156,33 +156,32 @@ SWAGGER_SETTINGS = {
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if config("mode")=="prod":
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': config('NAME'),
+            'USER': config('USER'),
+            'PASSWORD': config('PASSWORD'),
+            'HOST': 'db', # Change to your MySQL host if it's not local
+            'PORT': config("PORT"),
+            'CHARSET': 'utf8',
+            'COLLATION': 'utf8_bin',
+            'OPTIONS': {
+                'use_unicode': True,
+                'init_command': 'SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED',
+            },
+            # Change to your MySQL port if needed
+        }
     }
-}
+else:
 
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('NAME'),
-        'USER': config('USER'),
-        'PASSWORD': config('PASSWORD'),
-        'HOST': 'db', # Change to your MySQL host if it's not local
-        'PORT': config("PORT"),
-        'CHARSET': 'utf8',
-        'COLLATION': 'utf8_bin',
-        'OPTIONS': {
-            'use_unicode': True,
-            'init_command': 'SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED',
-        },
-        # Change to your MySQL port if needed
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
-
-"""
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
