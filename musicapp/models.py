@@ -8,6 +8,27 @@ from accountapp.models import CustomUser
 from licenceapp.models import Matiere
 from licenceapp.constants import CLASSE_CHOICES, NIVEAU_CHOICES
 
+
+MATIERE_CHOICES = [
+    ("Anglais", "Anglais"),
+    ("Anglais2", "Anglais2"),
+    ("Bonus", "Bonus"),
+    ("Economie", "Economie"),
+    ("Espagnol", "Espagnol"),
+    ("Geographie", "Geographie"),
+    ("Histoire", "Histoire"),
+    ("Mathematiques", "Mathematiques"),
+    ("Philosophie", "Philosophie"),
+    ("SVT", "SVT"),
+]
+
+# Définir les choix pour les styles
+STYLE_CHOICES = [
+    ("POP", "POP"),
+    ("RAP", "RAP"),
+    ("ZOUK", "ZOUK"),
+]
+
 # Create your models here.
 class Music(models.Model):
     beatmaker = models.CharField(max_length=255)
@@ -18,7 +39,8 @@ class Music(models.Model):
     interprete = models.CharField(max_length=255)
     isFree = models.BooleanField(default=True)
     lyrics_enreg = models.TextField(null=True, blank=True)
-    style_enreg = models.CharField(max_length=255)
+    style_enreg = models.CharField(max_length=255, choices=STYLE_CHOICES)
+    matiere = models.CharField(max_length=150, choices=MATIERE_CHOICES)  # Ajout du champ matière
     theme = models.CharField(max_length=255)
     url_enreg = models.URLField()
     url_img = models.URLField(null=True, blank=True)

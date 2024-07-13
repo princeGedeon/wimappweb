@@ -26,7 +26,7 @@ class MusicResource(resources.ModelResource):
     class Meta:
         model = Music
         import_id_fields = ['id']
-        fields = ('id', 'beatmaker', 'classe', 'date_created', 'duree_enreg', 'ecoutes', 'interprete', 'isFree', 'lyrics_enreg', 'style_enreg', 'theme', 'url_enreg', 'url_img', 'url_mp3')
+        fields = ('id', 'beatmaker', 'classe', 'date_created', 'duree_enreg', 'ecoutes', 'interprete', 'isFree', 'lyrics_enreg', 'style_enreg',"matiere", 'theme', 'url_enreg', 'url_img', 'url_mp3')
 
     def before_import_row(self, row, **kwargs):
         # Generate enreg_ID if not present
@@ -36,9 +36,9 @@ class MusicResource(resources.ModelResource):
 @admin.register(Music)
 class MusicAdmin(ImportExportModelAdmin):
     resource_class = MusicResource
-    list_display = ('theme', 'beatmaker', 'interprete', 'date_created', 'isFree')
+    list_display = ('theme', 'beatmaker', 'interprete', 'date_created', 'isFree','matiere')
     search_fields = ('theme', 'beatmaker', 'interprete')
-    list_filter = ('isFree', 'classe', 'style_enreg')
+    list_filter = ('isFree', 'classe', 'style_enreg',"matiere")
     actions = ['download_files_from_urls']
 
     def download_files_from_urls(self, request, queryset):
