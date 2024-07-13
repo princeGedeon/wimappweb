@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.shortcuts import render
 
 # Create your views here.
@@ -9,7 +11,7 @@ from rest_framework.decorators import api_view
 from rest_framework.views import APIView
 
 from licenceapp.permissions import ValidLicencePermission, StudentLicencePermission
-from .filters import MusicFilter
+
 from .models import Music, Playlist, Favori
 from .serializers import MusicSerializer, PlaylistSerializer, FavoriSerializer
 from drf_yasg.utils import swagger_auto_schema
@@ -19,6 +21,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from quizzapp.models import  Music
+
 
 
 class MusicViewSet(viewsets.ModelViewSet):
@@ -34,10 +37,34 @@ class MusicViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_description="Get all musics",
-        responses={200: MusicSerializer(many=True)}
+        responses={200: MusicSerializer(many=True)},
+        manual_parameters=[
+            openapi.Parameter(
+                'group_by',
+                openapi.IN_QUERY,
+                description="Grouper les musiques par un champ spécifique (ex: matiere, style_enreg)",
+                type=openapi.TYPE_STRING,
+            )
+        ]
     )
     def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+        queryset = self.filter_queryset(self.get_queryset())
+        group_by = request.GET.get('group_by')
+
+        if group_by:
+            grouped_data = defaultdict(list)
+            for music in queryset:
+                key = getattr(music, group_by, 'Other')
+                grouped_data[key].append(MusicSerializer(music).data)
+            return Response(grouped_data)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_description="Get a music by ID",
@@ -159,6 +186,24 @@ class PlaylistMusicsAPIView(APIView):
                 openapi.IN_PATH,
                 description="ID de la playlist",
                 type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                'theme',
+                openapi.IN_QUERY,
+                description="Rechercher les musiques par thème",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                'group_by',
+                openapi.IN_QUERY,
+                description="Grouper les musiques par un champ spécifique (ex: matiere, style_enreg)",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                'ordering',
+                openapi.IN_QUERY,
+                description="Trier les musiques par un champ spécifique (ex: date_created, -date_created)",
+                type=openapi.TYPE_STRING,
             )
         ]
     )
@@ -169,9 +214,25 @@ class PlaylistMusicsAPIView(APIView):
             return Response({'error': 'Playlist not found'}, status=status.HTTP_404_NOT_FOUND)
 
         musics = playlist.musics.all()
-        filterset = MusicFilter(request.GET, queryset=musics)
-        if not filterset.is_valid():
-            return Response(filterset.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = MusicSerializer(filterset.qs, many=True)
+        # Filtrage simple
+        theme = request.GET.get('theme')
+        if theme:
+            musics = musics.filter(theme__icontains=theme)
+
+        # Tri
+        ordering = request.GET.get('ordering')
+        if ordering:
+            musics = musics.order_by(ordering)
+
+        # Regroupement
+        group_by = request.GET.get('group_by')
+        if group_by:
+            grouped_data = defaultdict(list)
+            for music in musics:
+                key = getattr(music, group_by, 'Other')
+                grouped_data[key].append(MusicSerializer(music).data)
+            return Response(grouped_data)
+
+        serializer = MusicSerializer(musics, many=True)
         return Response(serializer.data)

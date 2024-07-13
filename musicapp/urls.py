@@ -30,6 +30,6 @@ urlpatterns = [
     path('get-my-favoris/', GetMyFavorisView.as_view(), name='get_my_favoris'),
     path('playlists/<int:pk>/musics/', PlaylistMusicsAPIView.as_view(), name='playlist-musics'),
 
- path('my-favorites/', UserFavoritesView.as_view(), name='my-favorites'),
+    path('my-favorites/', UserFavoritesView.as_view(), name='my-favorites'),
 
 ]

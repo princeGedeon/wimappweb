@@ -18,15 +18,3 @@ class MyPlaylistFilter(django_filters.FilterSet):
 # filters.py
 
 
-class MusicFilter(django_filters.FilterSet):
-    class Meta:
-        model = Music
-        fields = {
-            'beatmaker': ['exact', 'icontains'],
-            'classe': ['exact'],
-            'date_created': ['exact', 'year__gt'],
-            'interprete': ['exact', 'icontains'],
-            'isFree': ['exact'],
-            'style_enreg': ['exact'],
-            'theme': ['exact', 'icontains'],
-        }
