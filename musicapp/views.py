@@ -5,8 +5,11 @@ from django.shortcuts import render
 
 from rest_framework import viewsets, filters, generics, permissions
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import api_view
+from rest_framework.views import APIView
 
 from licenceapp.permissions import ValidLicencePermission, StudentLicencePermission
+from .filters import MusicFilter
 from .models import Music, Playlist, Favori
 from .serializers import MusicSerializer, PlaylistSerializer, FavoriSerializer
 from drf_yasg.utils import swagger_auto_schema
@@ -25,8 +28,8 @@ class MusicViewSet(viewsets.ModelViewSet):
     queryset = Music.objects.all()
     serializer_class = MusicSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['beatmaker', 'classe', 'interprete', 'isFree', 'style_enreg', 'theme']
-    search_fields = ['beatmaker', 'interprete', 'lyrics_enreg', 'theme']
+    filterset_fields = ['beatmaker', 'classe', 'interprete', 'isFree', 'style_enreg', 'theme','matiere']
+    search_fields = ['beatmaker', 'interprete', 'lyrics_enreg', 'theme','matiere']
     ordering_fields = ['date_created', 'duree_enreg', 'ecoutes']
 
     @swagger_auto_schema(
@@ -140,3 +143,35 @@ class UserFavoritesView(generics.ListAPIView):
             return Response(serializer.data)
         except Favori.DoesNotExist:
             return Response({'detail': 'No favorites found.'}, status=404)
+
+
+class PlaylistMusicsAPIView(APIView):
+    """
+    Récupère toutes les musiques d'une playlist spécifique.
+    """
+
+    @swagger_auto_schema(
+        operation_description="Récupère toutes les musiques d'une playlist spécifique.",
+        responses={200: MusicSerializer(many=True)},
+        manual_parameters=[
+            openapi.Parameter(
+                'pk',
+                openapi.IN_PATH,
+                description="ID de la playlist",
+                type=openapi.TYPE_INTEGER,
+            )
+        ]
+    )
+    def get(self, request, pk):
+        try:
+            playlist = Playlist.objects.get(pk=pk)
+        except Playlist.DoesNotExist:
+            return Response({'error': 'Playlist not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        musics = playlist.musics.all()
+        filterset = MusicFilter(request.GET, queryset=musics)
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = MusicSerializer(filterset.qs, many=True)
+        return Response(serializer.data)
