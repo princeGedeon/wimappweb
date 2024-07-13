@@ -13,7 +13,7 @@ class Music(models.Model):
     beatmaker = models.CharField(max_length=255)
     classe = models.CharField(max_length=10, choices=CLASSE_CHOICES, null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
-    duree_enreg = models.IntegerField(help_text="Duration in seconds")
+    duree_enreg = models.CharField(help_text="Duration in seconds")
     ecoutes = models.IntegerField(default=0)
     interprete = models.CharField(max_length=255)
     isFree = models.BooleanField(default=True)
