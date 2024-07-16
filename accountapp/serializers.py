@@ -43,9 +43,16 @@ class UserCreateSerializer(UserCreateSerializer):
 
 
 class ProfileImageUpdateSerializer(serializers.ModelSerializer):
+    profilImg = serializers.ImageField(required=True)
+
     class Meta:
         model = CustomUser
         fields = ['profilImg']
+
+    def update(self, instance, validated_data):
+        instance.profilImg = validated_data.get('profilImg', instance.profilImg)
+        instance.save()
+        return instance
 
     def update(self, instance, validated_data):
         instance.profilImg = validated_data.get('profilImg', instance.profilImg)

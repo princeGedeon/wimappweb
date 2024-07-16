@@ -276,7 +276,12 @@ class ProfileImageUpdateView(APIView):
 
     @swagger_auto_schema(
         operation_description="Upload and update the profile image for the logged-in user",
-        request_body=ProfileImageUpdateSerializer,
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'profilImg': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY)
+            }
+        ),
         responses={
             200: openapi.Response(
                 description="Profile image updated successfully",
@@ -295,7 +300,6 @@ class ProfileImageUpdateView(APIView):
             serializer.save()
             return Response({'detail': 'Profile image updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class AssignTuteurView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
