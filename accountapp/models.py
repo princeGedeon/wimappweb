@@ -24,13 +24,14 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser):
     email = models.EmailField(unique=True)
+    secondary_email=models.EmailField(null=True, blank=True)
     username = models.CharField(max_length=255)
     age = models.IntegerField(null=True, blank=True)
     genre = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')], null=True, blank=True)
     numTel = models.CharField(max_length=15, null=True, blank=True)
     pays = models.CharField(max_length=50, null=True, blank=True)
     ville = models.CharField(max_length=50, null=True, blank=True)
-    profilUrl = models.URLField(null=True, blank=True)
+    profilImg=models.ImageField(upload_to="images_profil/", null=True, blank=True)
     typeCompte = models.CharField(max_length=10, choices=[('STANDARD', 'Standard'), ('PREMIUM', 'Premium')],
                                   default='STANDARD')
     is_active = models.BooleanField(default=True)

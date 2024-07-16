@@ -7,7 +7,7 @@ from licenceapp.models import Licence
 class CustomUserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        (_('Personal info'), {'fields': ('username', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilUrl', 'typeCompte')}),
+        (_('Personal info'), {'fields': ('username', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte')}),
         (_('Permissions'), {'fields': ('is_active', 'is_admin', 'is_staff_member', 'is_superuser')}),
         (_('Important dates'), {'fields': ('last_login',)}),
         (_('Licences'), {'fields': ('licences',)}),
@@ -15,7 +15,7 @@ class CustomUserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'fullname', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilUrl', 'typeCompte', 'is_active', 'is_admin', 'is_staff_member', 'is_superuser')}
+            'fields': ('email', 'password1', 'password2', 'fullname', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte', 'is_active', 'is_admin', 'is_staff_member', 'is_superuser')}
         ),
     )
     list_display = ('email', 'username', 'is_admin', 'is_active', 'is_staff_member', 'is_superuser')

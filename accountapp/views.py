@@ -8,7 +8,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import CustomUser, OTP
-from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer, AssignTuteurSerializer
+from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer, AssignTuteurSerializer, \
+    ProfileImageUpdateSerializer, CustomLoginSerializer
 from django.conf import settings
 from firebase_admin import auth
 from rest_framework.views import APIView
@@ -270,7 +271,30 @@ class VerifyOTPAPIView(APIView):
 """
 
 
+class ProfileImageUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Upload and update the profile image for the logged-in user",
+        request_body=ProfileImageUpdateSerializer,
+        responses={
+            200: openapi.Response(
+                description="Profile image updated successfully",
+                examples={"application/json": {"detail": "Profile image updated successfully"}}
+            ),
+            400: openapi.Response(
+                description="Invalid input",
+                examples={"application/json": {"profilImg": ["A valid image is required."]}}
+            ),
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        serializer = ProfileImageUpdateSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'detail': 'Profile image updated successfully'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AssignTuteurView(APIView):
     permission_classes = [IsAuthenticated]
@@ -287,25 +311,41 @@ class AssignTuteurView(APIView):
     )
     def post(self, request):
         try:
-            tuteur_token = request.data.get('tuteur_token')
+            email = request.data.get('email')
 
-            if not tuteur_token:
-                return Response({'error': 'Le token tuteur_token est requis.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not email:
+                return Response({'error': 'email du parent est requis est requis.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            tuteur_data = AccessToken(tuteur_token)
-            tuteur_id = tuteur_data['user_id']
-
-            tuteur = CustomUser.objects.get(id=tuteur_id)
             user = request.user
 
             if user.age is not None and user.age <= 15:
-                user.tuteur = tuteur
+                user.secondary_email=user.email
+                user.email = email
                 user.save()
-                return Response({'success': 'Tuteur assigné avec succès.'}, status=status.HTTP_200_OK)
+                return Response({'success': 'Email du tuteur assigné avec succès.'}, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'L\'âge de l\'utilisateur doit être de 15 ans ou moins pour assigner un tuteur.'}, status=status.HTTP_400_BAD_REQUEST)
 
         except (ObjectDoesNotExist, KeyError):
-            return Response({'error': 'Token tuteur fourni invalide.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Email du  tuteur fourni invalide.'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class CustomLoginView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = CustomLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            refresh = RefreshToken.for_user(user)
+            response_data = {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                }
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
