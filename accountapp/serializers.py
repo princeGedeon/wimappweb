@@ -20,7 +20,7 @@ from django.utils import timezone
 
 
 class AssignTuteurSerializer(serializers.Serializer):
-    tuteur_token = serializers.CharField()
+    email = serializers.EmailField()
 
 
 class CustomUserCreateSerializer(BaseUserCreateSerializer):
