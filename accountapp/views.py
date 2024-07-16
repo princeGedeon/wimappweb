@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, permissions
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -271,17 +272,22 @@ class VerifyOTPAPIView(APIView):
 """
 
 
+
 class ProfileImageUpdateView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
         operation_description="Upload and update the profile image for the logged-in user",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'profilImg': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY)
-            }
-        ),
+        manual_parameters=[
+            openapi.Parameter(
+                'profilImg',
+                openapi.IN_FORM,
+                description="Image file to upload",
+                type=openapi.TYPE_FILE,
+                required=True
+            )
+        ],
         responses={
             200: openapi.Response(
                 description="Profile image updated successfully",
@@ -300,6 +306,7 @@ class ProfileImageUpdateView(APIView):
             serializer.save()
             return Response({'detail': 'Profile image updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class AssignTuteurView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
