@@ -24,6 +24,6 @@ class CustomUserAdmin(BaseUserAdmin):
 
     # Removing filter_horizontal and list_filter definitions
     filter_horizontal = ()
-    list_filter = ('is_active', 'is_admin', 'is_superuser','is_autog')
+    list_filter = ('is_active', 'is_admin', 'is_superuser','is_auto')
 
 admin.site.register(CustomUser, CustomUserAdmin)
