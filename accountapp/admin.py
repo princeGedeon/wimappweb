@@ -18,12 +18,12 @@ class CustomUserAdmin(BaseUserAdmin):
             'fields': ('email', 'password1', 'password2', 'fullname', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte', 'is_active', 'is_admin', 'is_staff_member', 'is_superuser')}
         ),
     )
-    list_display = ('email', 'username', 'is_admin', 'is_active', 'is_staff_member', 'is_superuser')
+    list_display = ('email', 'username', 'is_admin', 'is_active', 'is_staff_member', 'is_superuser','is_auto')
     search_fields = ('email', 'username')
     ordering = ('email',)
 
     # Removing filter_horizontal and list_filter definitions
     filter_horizontal = ()
-    list_filter = ('is_active', 'is_admin', 'is_superuser')
+    list_filter = ('is_active', 'is_admin', 'is_superuser','is_autog')
 
 admin.site.register(CustomUser, CustomUserAdmin)

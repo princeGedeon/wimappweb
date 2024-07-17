@@ -39,6 +39,7 @@ class CustomUser(AbstractBaseUser):
     is_superuser = models.BooleanField(default=False)
     licences = models.ManyToManyField(Licence, related_name='users', blank=True)
     fcm=models.CharField(max_length=10, null=True, blank=True)
+    is_auto=models.BooleanField(default=False,null=True,blank=True)
     tuteur = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='tutored_users')
     secondary_email = models.EmailField(null=True, blank=True,help_text="Email du tuteur",default="",verbose_name="Email secondaire de l'utilisateur")
     objects = CustomUserManager()

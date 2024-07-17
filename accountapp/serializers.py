@@ -26,7 +26,7 @@ class AssignTuteurSerializer(serializers.Serializer):
 class CustomUserCreateSerializer(BaseUserCreateSerializer):
     class Meta(BaseUserCreateSerializer.Meta):
         model = CustomUser
-        fields = ('email', 'password', 'username', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte')
+        fields = ('email', 'password', 'username','secondary_email', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte')
 
 class CustomUserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
