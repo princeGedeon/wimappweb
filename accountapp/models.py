@@ -11,7 +11,7 @@ class CustomUserManager(BaseUserManager):
         if not email:
             raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user = self.model(email=email,secondary_email="", **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -24,7 +24,6 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser):
     email = models.EmailField(unique=True)
-    secondary_email=models.EmailField(null=True, blank=True)
     username = models.CharField(max_length=255)
     age = models.IntegerField(null=True, blank=True)
     genre = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')], null=True, blank=True)
@@ -41,7 +40,7 @@ class CustomUser(AbstractBaseUser):
     licences = models.ManyToManyField(Licence, related_name='users', blank=True)
     fcm=models.CharField(max_length=10, null=True, blank=True)
     tuteur = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='tutored_users')
-
+    secondary_email = models.EmailField(null=True, blank=True,help_text="Email du tuteur",default="",verbose_name="Email secondaire de l'utilisateur")
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
