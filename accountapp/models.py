@@ -4,7 +4,7 @@ from django.utils import timezone
 
 from core import settings
 from licenceapp.models import Licence
-import firebase
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):

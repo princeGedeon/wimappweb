@@ -24,7 +24,7 @@ import random
 
 from allauth.socialaccount.providers.apple.views import AppleOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView
-import firebase
+from accountapp import firebase
 class AppleLogin(SocialLoginView):
     adapter_class = AppleOAuth2Adapter
 
