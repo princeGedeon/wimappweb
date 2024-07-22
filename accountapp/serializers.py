@@ -26,7 +26,7 @@ class AssignTuteurSerializer(serializers.Serializer):
 class CustomUserCreateSerializer(BaseUserCreateSerializer):
     class Meta(BaseUserCreateSerializer.Meta):
         model = CustomUser
-        fields = ('email', 'password', 'username','secondary_email', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte')
+        fields = ('id','is_auto','email', 'password', 'username','secondary_email', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte')
 
 class CustomUserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -80,4 +80,4 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id','email', 'username', "is_auto",'age', 'genre', 'numTel', 'pays', 'ville','fcm', 'profilImg', 'typeCompte', 'is_active', 'is_admin', 'is_staff_member', 'is_superuser', 'licences']
+        fields = ['id','email', 'username', "is_auto",'age', 'genre', 'numTel', 'gpays', 'ville','fcm', 'profilImg', 'typeCompte', 'is_active', 'is_admin', 'is_staff_member', 'is_superuser', 'licences']
