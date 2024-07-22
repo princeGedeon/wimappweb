@@ -66,12 +66,13 @@ class CustomLoginSerializer(serializers.Serializer):
             user = authenticate(request=self.context.get('request'), email=email, password=password)
             if not user:
                 raise serializers.ValidationError('Invalid email or password.')
+            if not user.is_valid:
+                raise serializers.ValidationError('Compte non validé.')
         else:
             raise serializers.ValidationError('Must include "email" and "password".')
 
         data['user'] = user
         return data
-
 
 
 class CustomUserSerializer(serializers.ModelSerializer):

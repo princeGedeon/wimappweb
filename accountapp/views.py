@@ -24,7 +24,7 @@ import random
 
 from allauth.socialaccount.providers.apple.views import AppleOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView
-
+import firebase
 class AppleLogin(SocialLoginView):
     adapter_class = AppleOAuth2Adapter
 
@@ -32,6 +32,7 @@ class AppleLogin(SocialLoginView):
         id_token = request.data.get('id_token')
         print("ID Token:", id_token)  # Debugging: Print the id_token to verify
         return super().post(request, *args, **kwargs)
+
 
 
 class GoogleLoginAPIView(APIView):
@@ -82,16 +83,17 @@ class GoogleLoginAPIView(APIView):
     )
     def post(self, request):
         id_token = request.data.get("id_token")
-        print(id_token)
         if not id_token:
             return Response({"detail": "Jeton d'identification requis."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             # Vérifier le jeton avec Firebase Admin SDK
             decoded_token = firebase_auth.verify_id_token(id_token)
-            print(decoded_token)
-            email = decoded_token['email']
-            google_user_id = decoded_token['uid']
+            email = decoded_token.get('email')
+            google_user_id = decoded_token.get('uid')
+
+            if not email:
+                return Response({"detail": "Impossible de récupérer l'email à partir du jeton."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Vérifier si l'utilisateur existe déjà dans la base de données
             try:
@@ -102,7 +104,12 @@ class GoogleLoginAPIView(APIView):
                     "email": email,
                     "password": None,  # Vous pouvez générer un mot de passe aléatoire si nécessaire
                     "username": decoded_token.get('name', ''),
-                    'age':None, 'genre':None, 'numTel':"", 'pays':"", 'ville':"", 'typeCompte':"STANDARD"
+                    'age': None,
+                    'genre': None,
+                    'numTel': "",
+                    'pays': "",
+                    'ville': "",
+                    'typeCompte': "STANDARD"
                 }
                 serializer = CustomUserCreateSerializer(data=user_data)
                 if serializer.is_valid():
@@ -343,8 +350,42 @@ class AssignTuteurView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 class CustomLoginView(APIView):
+    @swagger_auto_schema(
+        request_body=CustomLoginSerializer,
+        responses={
+            200: openapi.Response(
+                description="Successful login",
+                examples={
+                    'application/json': {
+                        'refresh': 'string',
+                        'access': 'string',
+                        'user': {
+                            'id': 'integer',
+                            'email': 'string'
+                        }
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Bad request",
+                examples={
+                    'application/json': {
+                        'email': [
+                            'This field is required.'
+                        ],
+                        'password': [
+                            'This field is required.'
+                        ],
+                        'non_field_errors': [
+                            'Invalid email or password.',
+                            'Compte non validé.'
+                        ]
+                    }
+                }
+            ),
+        }
+    )
     def post(self, request, *args, **kwargs):
         serializer = CustomLoginSerializer(data=request.data)
         if serializer.is_valid():

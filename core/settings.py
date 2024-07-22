@@ -30,9 +30,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 
-#cred = credentials.Certificate(FIREBASE_ADMIN_CREDENTIAL)
-#firebase_admin.initialize_app(cred)
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -334,6 +331,8 @@ SOCIALACCOUNT_PROVIDERS = {
 if config("mode")=="prod":
     FIREBASE_ADMIN_CREDENTIAL = os.path.join(BASE_DIR, 'workinmusic-30b37-firebase-adminsdk-h7ihz-8152566065.json')
 
+    cred = credentials.Certificate(FIREBASE_ADMIN_CREDENTIAL)
+    firebase_admin.initialize_app(cred)
     # Set the required AWS credentials
     AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
     AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
