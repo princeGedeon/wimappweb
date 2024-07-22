@@ -68,7 +68,7 @@ class CustomLoginSerializer(serializers.Serializer):
                 raise serializers.ValidationError('Invalid email or password.')
             if not user.is_active:
                 raise serializers.ValidationError('Compte non validé.')
-            if not user.is_auto:
+            if user.is_auto:
                 raise serializers.ValidationError('Vous devez changer de mot de passe.')
         else:
             raise serializers.ValidationError('Must include "email" and "password".')
