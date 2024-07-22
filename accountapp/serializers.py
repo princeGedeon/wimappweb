@@ -66,8 +66,10 @@ class CustomLoginSerializer(serializers.Serializer):
             user = authenticate(request=self.context.get('request'), email=email, password=password)
             if not user:
                 raise serializers.ValidationError('Invalid email or password.')
-            if not user.is_valid:
+            if not user.is_active:
                 raise serializers.ValidationError('Compte non validé.')
+            if not user.is_auto:
+                raise serializers.ValidationError('Vous devez changer de mot de passe.')
         else:
             raise serializers.ValidationError('Must include "email" and "password".')
 
@@ -80,4 +82,4 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id','email', 'username', "is_auto",'age', 'genre', 'numTel', 'gpays', 'ville','fcm', 'profilImg', 'typeCompte', 'is_active', 'is_admin', 'is_staff_member', 'is_superuser', 'licences']
+        fields = ['id','email', 'username', "is_auto",'age', 'genre', 'numTel', 'pays', 'ville','fcm', 'profilImg', 'typeCompte', 'is_active', 'is_admin', 'is_staff_member', 'is_superuser', 'licences']
