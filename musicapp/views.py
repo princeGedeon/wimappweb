@@ -8,9 +8,11 @@ from django.shortcuts import render
 from rest_framework import viewsets, filters, generics, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
 from licenceapp.permissions import ValidLicencePermission, StudentLicencePermission
+from .mixins import LicenceFilterMixin, LicenceValidationMixin
 
 from .models import Music, Playlist, Favori
 from .serializers import MusicSerializer, PlaylistSerializer, FavoriSerializer
@@ -24,21 +26,28 @@ from quizzapp.models import  Music
 
 
 
-class MusicViewSet(viewsets.ModelViewSet):
+
+class MusicViewSet(LicenceValidationMixin, LicenceFilterMixin, viewsets.ModelViewSet):
     """
     A simple ViewSet for viewing and editing musics.
     """
     queryset = Music.objects.all()
     serializer_class = MusicSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['beatmaker', 'classe', 'interprete', 'isFree', 'style_enreg', 'theme','matiere']
-    search_fields = ['beatmaker', 'interprete', 'lyrics_enreg', 'theme','matiere']
+    filterset_fields = ['beatmaker', 'classe', 'interprete', 'isFree', 'style_enreg', 'theme', 'matiere']
+    search_fields = ['beatmaker', 'interprete', 'lyrics_enreg', 'theme', 'matiere']
     ordering_fields = ['date_created', 'duree_enreg', 'ecoutes']
 
     @swagger_auto_schema(
         operation_description="Get all musics",
         responses={200: MusicSerializer(many=True)},
         manual_parameters=[
+            openapi.Parameter(
+                'licence',
+                openapi.IN_QUERY,
+                description="Filter musics based on licence value",
+                type=openapi.TYPE_STRING,
+            ),
             openapi.Parameter(
                 'group_by',
                 openapi.IN_QUERY,
@@ -49,8 +58,19 @@ class MusicViewSet(viewsets.ModelViewSet):
     )
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        group_by = request.GET.get('group_by')
 
+        # Apply licence filter
+        licence_value = request.GET.get('licence')
+        if licence_value:
+            # Validate the licence
+            try:
+                licence = self.validate_licence(request.user, licence_value)
+                # Apply licence-based filters
+                queryset = self.filter_by_licence(queryset, licence.valeur)
+            except ValidationError as e:
+                return Response({"error": str(e)}, status=400)
+
+        group_by = request.GET.get('group_by')
         if group_by:
             grouped_data = defaultdict(list)
             for music in queryset:
@@ -73,20 +93,33 @@ class MusicViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
+
 class CreatePlaylistView(generics.CreateAPIView):
     queryset = Playlist.objects.all()
     serializer_class = PlaylistSerializer
     permission_classes = [permissions.IsAuthenticated, ValidLicencePermission]
 
-class GetSchoolPlaylistsView(generics.ListAPIView):
+
+class GetSchoolPlaylistsView(LicenceValidationMixin, generics.ListAPIView):
     serializer_class = PlaylistSerializer
     permission_classes = [permissions.IsAuthenticated, ValidLicencePermission]
 
     def get_queryset(self):
         user = self.request.user
-        licence_source = user.licence.source
-        return Playlist.objects.filter(created_by__licence__source=licence_source, created_by__licence__type='enseignant')
+        licence_value = self.request.query_params.get('licence')
 
+        if not licence_value:
+            raise ValidationError("Licence value is required")
+
+        # Validate the licence
+        licence = self.validate_licence(user, licence_value)
+
+        # Filter playlists by the licence's source, niveau, and classe
+        return Playlist.objects.filter(
+            matiere=licence.source,
+            classe=licence.classe,
+            #source
+        )
 
 
 class GetMyPlaylistsView(generics.ListAPIView):
@@ -94,21 +127,28 @@ class GetMyPlaylistsView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated, ValidLicencePermission]
 
     def get_queryset(self):
-        return Playlist.objects.filter(created_by=self.request.user)
+        user = self.request.user
+        licence_value = self.request.query_params.get('licence')
 
-class GetMyFavorisView(generics.ListAPIView):
-    serializer_class = FavoriSerializer
-    permission_classes = [permissions.IsAuthenticated]
+        if not licence_value:
+            raise ValidationError("Licence value is required")
 
-    def get_queryset(self):
-        return Favori.objects.filter(user=self.request.user)
+        # Validate the licence
+        licence = self.validate_licence(user, licence_value)
+
+        # Filter playlists by the licence's source, niveau, and classe
+        return Playlist.objects.filter(
+            matiere=licence.source,
+            classe=licence.classe,
+            # source
+        )
 
 
 class PlaylistViewSet(viewsets.ReadOnlyModelViewSet):
     """
     A simple ViewSet for viewing and editing playlists.
     """
-    queryset = Playlist.objects.all()
+    queryset = Playlist.objects.filter(is_public=True)
     serializer_class = PlaylistSerializer
     #permission_classes = [permissions.IsAuthenticated]
 
@@ -236,3 +276,70 @@ class PlaylistMusicsAPIView(APIView):
 
         serializer = MusicSerializer(musics, many=True)
         return Response(serializer.data)
+
+
+class AddMusicToFavoriView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Add a music to the user's favori. If the favori does not exist, create one.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'music_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID of the music to add'),
+                'title': openapi.Schema(type=openapi.TYPE_STRING, description='Title of the favori'),
+            }
+        ),
+        responses={200: 'Success', 404: 'Music not found'}
+    )
+    def post(self, request):
+        user = request.user
+        music_id = request.data.get('music_id')
+        title = request.data.get('title', 'My Favori')
+
+        # Get or create favori
+        favori, created = Favori.objects.get_or_create(user=user, defaults={'title': title})
+
+        try:
+            music = Music.objects.get(id=music_id)
+        except Music.DoesNotExist:
+            return Response({'error': 'Music not found'}, status=404)
+
+        favori.musics.add(music)
+        favori.save()
+
+        return Response({'success': 'Music added to favori'}, status=200)
+
+class GetMyFavoriView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Get the favori of the currently authenticated user.",
+        responses={200: FavoriSerializer(many=False), 404: 'Favori not found'}
+    )
+    def get(self, request):
+        user = request.user
+        try:
+            favori = Favori.objects.get(user=user)
+        except Favori.DoesNotExist:
+            return Response({'error': 'Favori not found'}, status=404)
+
+        serializer = FavoriSerializer(favori)
+        return Response(serializer.data)
+
+class DeleteFavoriView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Delete the favori of the currently authenticated user.",
+        responses={200: 'Success', 404: 'Favori not found'}
+    )
+    def delete(self, request):
+        user = request.user
+        try:
+            favori = Favori.objects.get(user=user)
+        except Favori.DoesNotExist:
+            return Response({'error': 'Favori not found'}, status=404)
+
+        favori.delete()
+        return Response({'success': 'Favori deleted'}, status=200)

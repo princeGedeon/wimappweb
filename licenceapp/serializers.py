@@ -19,3 +19,8 @@ class LicenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Licence
         fields = '__all__'
+
+class LicenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Licence
+        fields = ['id', 'date_exp', 'valeur', 'is_active', 'classe', 'niveau', 'type', 'source']

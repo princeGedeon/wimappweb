@@ -3,7 +3,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -332,3 +332,12 @@ class UpdateLevelLicencesView(APIView):
                 licences_created += 1
 
         return Response({'detail': f'{licences_updated} licences updated and {licences_created} licences created successfully.'}, status=status.HTTP_200_OK)
+
+class UserLicencesView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        licences = user.licences.all()
+        serializer = LicenceSerializer(licences, many=True)
+        return Response(serializer.data)

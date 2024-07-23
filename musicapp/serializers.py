@@ -19,3 +19,10 @@ class FavoriSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favori
         fields = ['id', 'user', 'musics', 'title']
+
+class FavoriGetSerializer(serializers.ModelSerializer):
+    musics = MusicSerializer(many=True)
+
+    class Meta:
+        model = Favori
+        fields = ['id', 'title', 'musics']
