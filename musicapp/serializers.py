@@ -8,6 +8,7 @@ class MusicSerializer(serializers.ModelSerializer):
         model = Music
         fields = '__all__'
 
+
 class PlaylistSerializer(serializers.ModelSerializer):
     musics = MusicSerializer(many=True, read_only=True)
 

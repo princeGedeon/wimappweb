@@ -343,3 +343,44 @@ class DeleteFavoriView(APIView):
 
         favori.delete()
         return Response({'success': 'Favori deleted'}, status=200)
+
+class RemoveMusicFromFavoriView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Remove a music from the user's favori",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'music_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID of the music to remove'),
+            }
+        ),
+        responses={
+            200: openapi.Response('Success', FavoriSerializer),
+            400: 'Bad Request',
+            404: 'Not Found',
+        }
+    )
+    def delete(self, request):
+        user = request.user
+        music_id = request.data.get('music_id')
+
+        if not music_id:
+            return Response({'error': 'Music ID is required'}, status=400)
+
+        try:
+            music = Music.objects.get(id=music_id)
+        except Music.DoesNotExist:
+            return Response({'error': 'Music not found'}, status=404)
+
+        try:
+            favori = Favori.objects.get(user=user)
+        except Favori.DoesNotExist:
+            return Response({'error': 'Favori not found'}, status=404)
+
+        if music in favori.musics.all():
+            favori.musics.remove(music)
+            favori.save()
+            return Response({'success': 'Music removed from favori'}, status=200)
+        else:
+            return Response({'error': 'Music not in favori'}, status=400)
