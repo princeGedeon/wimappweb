@@ -1,42 +1,41 @@
 from collections import defaultdict
-
 from django.shortcuts import render
-
-# Create your views here.
-# views.py
-
-from rest_framework import viewsets, filters, generics, permissions
+from rest_framework import viewsets, filters, generics, permissions, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
-
-from licenceapp.permissions import ValidLicencePermission, StudentLicencePermission
-from .mixins import LicenceFilterMixin, LicenceValidationMixin
-
-from .models import Music, Playlist, Favori
-from .serializers import MusicSerializer, PlaylistSerializer, FavoriSerializer
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from quizzapp.models import  Music
-
-
-
+from licenceapp.permissions import ValidLicencePermission, StudentLicencePermission
+from .mixins import LicenceFilterMixin, LicenceValidationMixin
+from .models import Music, Playlist, Favori
+from .serializers import (
+    MusicSerializer,
+    MusicCreateSerializer,
+    PlaylistSerializer,
+    PlaylistCreateSerializer,
+    FavoriSerializer,
+    FavoriCreateSerializer,
+    FavoriGetSerializer
+)
 
 class MusicViewSet(LicenceValidationMixin, LicenceFilterMixin, viewsets.ModelViewSet):
     """
     A simple ViewSet for viewing and editing musics.
     """
     queryset = Music.objects.all()
-    serializer_class = MusicSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['beatmaker', 'classe', 'interprete', 'isFree', 'style_enreg', 'theme', 'matiere']
     search_fields = ['beatmaker', 'interprete', 'lyrics_enreg', 'theme', 'matiere']
     ordering_fields = ['date_created', 'duree_enreg', 'ecoutes']
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return MusicCreateSerializer
+        return MusicSerializer
 
     @swagger_auto_schema(
         operation_description="Get all musics",
@@ -96,7 +95,7 @@ class MusicViewSet(LicenceValidationMixin, LicenceFilterMixin, viewsets.ModelVie
 
 class CreatePlaylistView(generics.CreateAPIView):
     queryset = Playlist.objects.all()
-    serializer_class = PlaylistSerializer
+    serializer_class = PlaylistCreateSerializer
     permission_classes = [permissions.IsAuthenticated, ValidLicencePermission]
 
 
@@ -118,11 +117,10 @@ class GetSchoolPlaylistsView(LicenceValidationMixin, generics.ListAPIView):
         return Playlist.objects.filter(
             matiere=licence.source,
             classe=licence.classe,
-            #source
         )
 
 
-class GetMyPlaylistsView(generics.ListAPIView):
+class GetMyPlaylistsView(LicenceValidationMixin, generics.ListAPIView):
     serializer_class = PlaylistSerializer
     permission_classes = [permissions.IsAuthenticated, ValidLicencePermission]
 
@@ -140,7 +138,6 @@ class GetMyPlaylistsView(generics.ListAPIView):
         return Playlist.objects.filter(
             matiere=licence.source,
             classe=licence.classe,
-            # source
         )
 
 
@@ -150,7 +147,6 @@ class PlaylistViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Playlist.objects.filter(is_public=True)
     serializer_class = PlaylistSerializer
-    #permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
         operation_description="Get all playlists",
@@ -161,7 +157,7 @@ class PlaylistViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class AddToFavoritesView(generics.UpdateAPIView):
-    serializer_class = FavoriSerializer
+    serializer_class = FavoriCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
@@ -190,7 +186,6 @@ class AddToFavoritesView(generics.UpdateAPIView):
         favori.save()
         serializer = self.get_serializer(favori)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 
 class UserFavoritesView(generics.ListAPIView):
@@ -310,12 +305,13 @@ class AddMusicToFavoriView(APIView):
 
         return Response({'success': 'Music added to favori'}, status=200)
 
+
 class GetMyFavoriView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     @swagger_auto_schema(
         operation_description="Get the favori of the currently authenticated user.",
-        responses={200: FavoriSerializer(many=False), 404: 'Favori not found'}
+        responses={200: FavoriGetSerializer(many=False), 404: 'Favori not found'}
     )
     def get(self, request):
         user = request.user
@@ -324,8 +320,9 @@ class GetMyFavoriView(APIView):
         except Favori.DoesNotExist:
             return Response({'error': 'Favori not found'}, status=404)
 
-        serializer = FavoriSerializer(favori)
+        serializer = FavoriGetSerializer(favori)
         return Response(serializer.data)
+
 
 class DeleteFavoriView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -343,6 +340,7 @@ class DeleteFavoriView(APIView):
 
         favori.delete()
         return Response({'success': 'Favori deleted'}, status=200)
+
 
 class RemoveMusicFromFavoriView(APIView):
     permission_classes = [permissions.IsAuthenticated]

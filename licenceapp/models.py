@@ -38,6 +38,8 @@ class Licence(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
                              related_name='user_licences')
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    createdAt=models.DateTimeField(auto_created=True)
+    updatedAt=models.DateTimeField(auto_now=True)
 
     def disable(self):
         self.is_active = False

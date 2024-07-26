@@ -1,8 +1,4 @@
-
-from rest_framework import serializers
 from licenceapp.models import Licence
-from django.utils import timezone
-
 from rest_framework import serializers
 
 class UploadLicencesSerializer(serializers.Serializer):
@@ -15,12 +11,8 @@ class UploadLicencesSerializer(serializers.Serializer):
         return value
 
 
-class LicenceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Licence
-        fields = '__all__'
 
 class LicenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Licence
-        fields = ['id', 'date_exp', 'valeur', 'is_active', 'classe', 'niveau', 'type', 'source']
+        fields = ['id', 'date_exp', 'valeur', 'is_active', 'classe', 'niveau', 'type', 'source','createdAt', 'updatedAt']
