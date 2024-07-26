@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from licenceapp.models import Licence
 from licenceapp.serializers import LicenceSerializer
-from .models import CustomUserg
+from .models import CustomUser
 User = get_user_model()
 
 
