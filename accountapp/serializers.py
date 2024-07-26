@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from licenceapp.models import Licence
 from licenceapp.serializers import LicenceSerializer
-from .models import CustomUser
+from .models import CustomUserg
 User = get_user_model()
 
 
@@ -31,7 +31,7 @@ class CustomUserCreateSerializer(BaseUserCreateSerializer):
 class CustomUserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('username', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte')
+        fields = ('id','username', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte')
 
 class UserCreateSerializer(UserCreateSerializer):
 
