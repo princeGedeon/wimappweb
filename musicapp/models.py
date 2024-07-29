@@ -11,7 +11,6 @@ from licenceapp.constants import CLASSE_CHOICES, NIVEAU_CHOICES
 
 MATIERE_CHOICES = [
     ("Anglais", "Anglais"),
-    ("Anglais2", "Anglais2"),
     ("Bonus", "Bonus"),
     ("Economie", "Economie"),
     ("Espagnol", "Espagnol"),
@@ -75,8 +74,9 @@ class Music(models.Model):
 class Playlist(models.Model):
     nom = models.CharField(max_length=255)
     is_public = models.BooleanField(default=True)
-    classe = models.CharField(max_length=10, choices=CLASSE_CHOICES, null=True, blank=True)
-    matiere = models.ForeignKey(Matiere, on_delete=models.SET_NULL, null=True)
+    classe = models.CharField(max_length=30, choices=CLASSE_CHOICES, null=True, blank=True)
+    matiere = models.CharField(max_length=150, choices=MATIERE_CHOICES)
+    niveau=models.CharField(max_length=150,default="",null=True,blank=True)
     created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='playlists')
     musics = models.ManyToManyField(Music, related_name='playlists')
 
