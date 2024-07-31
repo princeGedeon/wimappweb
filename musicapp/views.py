@@ -2,7 +2,7 @@ from collections import defaultdict
 from django.shortcuts import render
 from rest_framework import viewsets, filters, generics, permissions, status
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,6 +10,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from licenceapp.permissions import ValidLicencePermission, StudentLicencePermission
+from .filters import MyPlaylistFilter
 from .mixins import LicenceFilterMixin, LicenceValidationMixin
 from .models import Music, Playlist, Favori
 from .serializers import (
@@ -120,10 +121,25 @@ class GetSchoolPlaylistsView(LicenceValidationMixin, generics.ListAPIView):
         )
 
 
+
 class GetMyPlaylistsView(LicenceValidationMixin, generics.ListAPIView):
     serializer_class = PlaylistSerializer
     permission_classes = [permissions.IsAuthenticated, ValidLicencePermission]
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
+    filterset_class = MyPlaylistFilter
+    ordering_fields = ['nom', 'classe', 'niveau',]  # Specify fields to sort by
+    ordering = ['nom']  # Default ordering
 
+    @swagger_auto_schema(
+        operation_summary="Retrieve user playlists",
+        operation_description="Get playlists filtered by various attributes and ordered as specified.",
+        manual_parameters=[
+            openapi.Parameter('licence', openapi.IN_QUERY, description="Licence value to filter playlists", type=openapi.TYPE_STRING),
+            openapi.Parameter('search', openapi.IN_QUERY, description="Search term for playlist names", type=openapi.TYPE_STRING),
+            openapi.Parameter('ordering', openapi.IN_QUERY, description="Field to order by", type=openapi.TYPE_STRING),
+            openapi.Parameter('group_by', openapi.IN_QUERY, description="Field to group by", type=openapi.TYPE_STRING),
+        ]
+    )
     def get_queryset(self):
         user = self.request.user
         licence_value = self.request.query_params.get('licence')
@@ -135,10 +151,19 @@ class GetMyPlaylistsView(LicenceValidationMixin, generics.ListAPIView):
         licence = self.validate_licence(user, licence_value)
 
         # Filter playlists by the licence's source, niveau, and classe
-        return Playlist.objects.filter(
+        queryset = Playlist.objects.filter(
             matiere=licence.source,
             classe=licence.classe,
         )
+
+        # Group by attribute (if needed)
+        group_by = self.request.query_params.get('group_by')
+        if group_by:
+            # Note: Django ORM does not support group by directly; you may need to handle this differently
+            queryset = queryset.values(group_by).annotate(count=models.Count(group_by))
+
+        return queryset
+
 
 
 class PlaylistViewSet(viewsets.ReadOnlyModelViewSet):
@@ -382,3 +407,51 @@ class RemoveMusicFromFavoriView(APIView):
             return Response({'success': 'Music removed from favori'}, status=200)
         else:
             return Response({'error': 'Music not in favori'}, status=400)
+
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'music_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID of the music to add'),
+    },
+))
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def add_music_to_playlist(request, playlist_id):
+    try:
+        playlist = Playlist.objects.get(id=playlist_id, created_by=request.user)
+    except Playlist.DoesNotExist:
+        return Response({"detail": "Playlist not found or you don't have access to it."}, status=status.HTTP_404_NOT_FOUND)
+
+    music_id = request.data.get('music_id')
+    try:
+        music = Music.objects.get(id=music_id)
+    except Music.DoesNotExist:
+        return Response({"detail": "Music not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    playlist.musics.add(music)
+    playlist.save()
+    return Response(PlaylistSerializer(playlist).data, status=status.HTTP_200_OK)
+
+@swagger_auto_schema(method='post', request_body=openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'music_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID of the music to remove'),
+    },
+))
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def remove_music_from_playlist(request, playlist_id):
+    try:
+        playlist = Playlist.objects.get(id=playlist_id, created_by=request.user)
+    except Playlist.DoesNotExist:
+        return Response({"detail": "Playlist not found or you don't have access to it."}, status=status.HTTP_404_NOT_FOUND)
+
+    music_id = request.data.get('music_id')
+    try:
+        music = Music.objects.get(id=music_id)
+    except Music.DoesNotExist:
+        return Response({"detail": "Music not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    playlist.musics.remove(music)
+    playlist.save()
+    return Response(PlaylistSerializer(playlist).data, status=status.HTTP_200_OK)

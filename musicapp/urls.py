@@ -7,7 +7,7 @@ from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
 from .views import MusicViewSet, PlaylistViewSet, CreatePlaylistView, GetMyPlaylistsView, \
     GetSchoolPlaylistsView, UserFavoritesView, PlaylistMusicsAPIView, GetMyFavoriView, \
-    DeleteFavoriView, AddMusicToFavoriView, RemoveMusicFromFavoriView
+    DeleteFavoriView, AddMusicToFavoriView, RemoveMusicFromFavoriView, add_music_to_playlist, remove_music_from_playlist
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -35,5 +35,7 @@ path('add-music-to-favori/', AddMusicToFavoriView.as_view(), name='add-music-to-
     path('get-my-favori/', GetMyFavoriView.as_view(), name='get-my-favori'),
     path('delete-favori/', DeleteFavoriView.as_view(), name='delete-favori'),
     path('remove-music-from-favori/', RemoveMusicFromFavoriView.as_view(), name='remove-music-from-favori'),
+    path('playlist/<int:playlist_id>/add_music/', add_music_to_playlist, name='add_music_to_playlist'),
+    path('playlist/<int:playlist_id>/remove_music/', remove_music_from_playlist, name='remove_music_from_playlist'),
 
 ]
