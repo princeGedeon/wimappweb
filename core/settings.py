@@ -52,6 +52,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 'allauth',
+    'oauth2_provider',
+    'social_django',
+    'rest_framework_social_oauth2',
     'allauth.account',
     'allauth.socialaccount',
     'storages',
@@ -61,7 +64,7 @@ INSTALLED_APPS = [
 'dj_rest_auth',
     'dj_rest_auth.registration',
 
-    'social_django',
+
 
 
     'import_export',
@@ -121,7 +124,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
        # 'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
         'rest_framework_social_oauth2.authentication.SocialAuthentication',
+
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
@@ -274,18 +279,44 @@ DJOSER = {
 }
 # Auth
 AUTHENTICATION_BACKENDS = [
+    # Facebook OAuth2
+    'social_core.backends.facebook.FacebookAppOAuth2',
+    'social_core.backends.facebook.FacebookOAuth2',
+
+    # Google OAuth2
+    'social_core.backends.google.GoogleOAuth2',
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',
+
     "django.contrib.auth.backends.ModelBackend",
     'allauth.account.auth_backends.AuthenticationBackend',
-   # 'rest_framework_social_oauth2.backends.DjangoOAuth2',
 
 
 
 ]
 #Google
-"""SOCIAL_AUTH_AUTHENTICATION_BACKENDS = (
+SOCIAL_AUTH_AUTHENTICATION_BACKENDS = (
     'social_core.backends.apple.AppleIdAuth',
-)"""
+)
 
+# Google configuration
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY =config('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET =config('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
+
+# Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+]
+# Facebook configuration
+SOCIAL_AUTH_FACEBOOK_KEY = config('SOCIAL_AUTH_FACEBOOK_KEY')
+SOCIAL_AUTH_FACEBOOK_SECRET = config("SOCIAL_AUTH_FACEBOOK_SECRET")
+
+# Define SOCIAL_AUTH_FACEBOOK_SCOPE to get extra permissions from Facebook.
+# Email is not sent by default, to get it, you must request the email permission.
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
+    'fields': 'id, name, email'
+}
 # Email
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -298,8 +329,8 @@ EMAIL_USE_TLS = True  # Utilisez TLS pour sécuriser la connexion
 #-------------------
 
 SOCIAL_AUTH_APPLE_ID_CLIENT= 'com.workinmusic.wimusic'
-SOCIAL_AUTH_APPLE_ID_TEAM= '2F99S874FL'               # Your Team ID, ie K2232113
-SOCIAL_AUTH_APPLE_ID_KEY= '24T3K2WRWN'                # Your Key ID, ie Y2P99J3N81K
+SOCIAL_AUTH_APPLE_ID_TEAM= config('SOCIAL_AUTH_APPLE_ID_TEAM')               # Your Team ID, ie K2232113
+SOCIAL_AUTH_APPLE_ID_KEY= config('SOCIAL_AUTH_APPLE_ID_KEY')                # Your Key ID, ie Y2P99J3N81K
 SOCIAL_AUTH_APPLE_ID_SECRET= """
 -----BEGIN PRIVATE KEY-----
 MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgmyF9+Du/EojT0Qpr
@@ -371,3 +402,5 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_STORE_TOKENS = True
 LOGIN_REDIRECT_URL = '/'
 REST_USE_JWT = True
+
+DRFSO2_URL_NAMESPACE='auth-api'
