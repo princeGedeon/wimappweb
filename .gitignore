@@ -6,3 +6,4 @@ accountapp/migrations/
 licenceapp/migrations/
 quizzapp/migrations/
 musicapp/migrations/
+db.sqlite3
