@@ -237,29 +237,8 @@ MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = [
-"https://app.workinmusic.fr",
-    "http://app.workinmusic.fr",
-"https://www.app.workinmusic.fr",
-    "http://www.app.workinmusic.fr",
-    "http://127.0.0.1:5173",
-    "https://127.0.0.1:5173",
-"http://127.0.0.1:3000",
-    "https://127.0.0.1:3000",
-"http://localhost:8001",
-"http://127.0.0.1:9000",
-"http://localhost:8000",
-"http://127.0.0.1:8000",
-"http://localhost:8080",
-"http://localhost:8080",
-"http://localhost:8081",
-"http://localhost:8080",
-    "http://localhost:5173",
-    "https://localhost:5173",
-"http://localhost:3000",
-    "https://localhost:3000",
-
-]
+CORS_ORIGIN_ALLOW_ALL = True  # or False
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ORIGIN_ALLOW = True
 AUTH_USER_MODEL = 'accountapp.CustomUser'
