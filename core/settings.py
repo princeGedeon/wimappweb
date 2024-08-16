@@ -257,7 +257,7 @@ CORS_ALLOWED_ORIGINS = [
 
 ]
 CORS_ALLOW_ALL_ORIGINS = True
-
+CORS_ORIGIN_ALLOW = True
 AUTH_USER_MODEL = 'accountapp.CustomUser'
 CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://app.workinmusic.fr","http://app.workinmusic.fr"]
 
