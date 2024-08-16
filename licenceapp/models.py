@@ -1,22 +1,35 @@
-import uuid
 from django.db import models
 from django.conf import settings
+import uuid
 from django.utils import timezone
-from .constants import NIVEAU_CHOICES, CLASSE_CHOICES
 
 class Matiere(models.Model):
-    name = models.CharField(max_length=255)
+    nom = models.CharField(max_length=255)
+    image=models.ImageField(null=True,blank=True,upload_to="matiere_img/")
+    color=models.CharField(max_length=20,null=True,blank=True)
 
     def __str__(self):
-        return self.name
+        return self.nom
+
+class Classe(models.Model):
+    nom = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.nom
+
+class Niveau(models.Model):
+    nom = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.nom
 
 class Source(models.Model):
     TYPE_CHOICES = [
         ('centre_formation', 'Centre de Formation'),
         ('personnel', 'Personnel'),
-        ('Autre', 'Autre')
+        ('Autre', 'Autre'),
+        ('ecole', 'Ecole')
     ]
-
     nom = models.CharField(max_length=255)
     type = models.CharField(max_length=50, choices=TYPE_CHOICES)
 
@@ -32,14 +45,14 @@ class Licence(models.Model):
     date_exp = models.DateField()
     valeur = models.CharField(max_length=32, unique=True, editable=False, default=uuid.uuid4().hex)
     is_active = models.BooleanField(default=True)
-    classe = models.CharField(max_length=20, choices=CLASSE_CHOICES, null=True, blank=True)
-    niveau = models.CharField(max_length=10, choices=NIVEAU_CHOICES, null=True, blank=True)
+    classe = models.ForeignKey(Classe, on_delete=models.SET_NULL, null=True, blank=True, related_name='licences')
+    niveau = models.ForeignKey(Niveau, on_delete=models.SET_NULL, null=True, blank=True, related_name='licences')
     source = models.ForeignKey(Source, on_delete=models.CASCADE, related_name='licences')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
                              related_name='user_licences')
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
-    createdAt=models.DateTimeField(auto_created=True)
-    updatedAt=models.DateTimeField(auto_now=True)
+    createdAt = models.DateTimeField(auto_created=True)
+    updatedAt = models.DateTimeField(auto_now=True)
 
     def disable(self):
         self.is_active = False

@@ -8,6 +8,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from licenceapp.serializers import LicenceSerializer
 from .models import CustomUser, OTP
 from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer, AssignTuteurSerializer, \
     ProfileImageUpdateSerializer, CustomLoginSerializer
@@ -391,13 +392,18 @@ class CustomLoginView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data['user']
             refresh = RefreshToken.for_user(user)
+            licences = user.licences.all()
+            serializer = LicenceSerializer(licences, many=True)
             response_data = {
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
                 'user': {
                     'id': user.id,
                     'email': user.email,
-                }
+                    'isAuto': user.is_auto,
+
+                },
+                'licences': serializer.data
             }
             return Response(response_data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

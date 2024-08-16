@@ -249,6 +249,9 @@ CORS_ALLOWED_ORIGINS = [
 "http://localhost:8080",
 "http://localhost:8080",
 "http://localhost:8081",
+"http://localhost:8080",
+    "http://localhost:5173",
+    "https://localhost:5173"
 
 ]
 CORS_ALLOW_ALL_ORIGINS = True
@@ -264,7 +267,7 @@ DJOSER = {
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": False,
     "SEND_CONFIRMATION_EMAIL": True,
     "SET_PASSWORD_RETYPE": True,
-    "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
+    "PASSWORD_RESET_CONFIRM_URL": "auth/change-password/{uid}/{token}",
     "USERNAME_RESET_CONFIRM_URL": "",
     "ACTIVATION_URL": "activate/{uid}/{token}",
     "SEND_ACTIVATION_EMAIL": True,
@@ -322,9 +325,9 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = "guedjegedeon03@gmail.com"
+EMAIL_HOST_USER = "wim-ai@workinmusic.fr"
 #'contacts@workinmusic.fr'ff
-EMAIL_HOST_PASSWORD ="odtoljgqbzjdhcnh"
+EMAIL_HOST_PASSWORD ="omdqldcfrvhgxbrd"
 EMAIL_USE_TLS = True  # Utilisez TLS pour sécuriser la connexion
 #-------------------
 

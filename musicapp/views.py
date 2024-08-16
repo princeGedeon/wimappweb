@@ -1,4 +1,6 @@
 from collections import defaultdict
+
+from django.db import models
 from django.shortcuts import render
 from rest_framework import viewsets, filters, generics, permissions, status
 from django_filters.rest_framework import DjangoFilterBackend
@@ -24,13 +26,10 @@ from .serializers import (
 )
 
 class MusicViewSet(LicenceValidationMixin, LicenceFilterMixin, viewsets.ModelViewSet):
-    """
-    A simple ViewSet for viewing and editing musics.
-    """
     queryset = Music.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['beatmaker', 'classe', 'interprete', 'isFree', 'style_enreg', 'theme', 'matiere']
-    search_fields = ['beatmaker', 'interprete', 'lyrics_enreg', 'theme', 'matiere']
+    filterset_fields = ['beatmaker', 'classe__id', 'niveau__id', 'interprete', 'isFree', 'style_enreg__id', 'theme', 'matiere__id']
+    search_fields = ['beatmaker', 'interprete', 'lyrics_enreg', 'theme', 'matiere__nom', 'classe__nom', 'niveau__nom']
     ordering_fields = ['date_created', 'duree_enreg', 'ecoutes']
 
     def get_serializer_class(self):
@@ -51,7 +50,7 @@ class MusicViewSet(LicenceValidationMixin, LicenceFilterMixin, viewsets.ModelVie
             openapi.Parameter(
                 'group_by',
                 openapi.IN_QUERY,
-                description="Grouper les musiques par un champ spécifique (ex: matiere, style_enreg)",
+                description="Grouper les musiques par un champ spécifique (ex: matiere, style_enreg, classe, niveau)",
                 type=openapi.TYPE_STRING,
             )
         ]
@@ -62,13 +61,11 @@ class MusicViewSet(LicenceValidationMixin, LicenceFilterMixin, viewsets.ModelVie
         # Apply licence filter
         licence_value = request.GET.get('licence')
         if licence_value:
-            # Validate the licence
             try:
                 licence = self.validate_licence(request.user, licence_value)
-                # Apply licence-based filters
                 queryset = self.filter_by_licence(queryset, licence.valeur)
             except ValidationError as e:
-                return Response({"error": str(e)}, status=400)
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         group_by = request.GET.get('group_by')
         if group_by:
@@ -86,56 +83,29 @@ class MusicViewSet(LicenceValidationMixin, LicenceFilterMixin, viewsets.ModelVie
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @swagger_auto_schema(
-        operation_description="Get a music by ID",
-        responses={200: MusicSerializer()}
-    )
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-
 class CreatePlaylistView(generics.CreateAPIView):
     queryset = Playlist.objects.all()
     serializer_class = PlaylistCreateSerializer
     permission_classes = [permissions.IsAuthenticated, ValidLicencePermission]
 
 
+
 class GetSchoolPlaylistsView(LicenceValidationMixin, generics.ListAPIView):
-    serializer_class = PlaylistSerializer
-    permission_classes = [permissions.IsAuthenticated, ValidLicencePermission]
-
-    def get_queryset(self):
-        user = self.request.user
-        licence_value = self.request.query_params.get('licence')
-
-        if not licence_value:
-            raise ValidationError("Licence value is required")
-
-        # Validate the licence
-        licence = self.validate_licence(user, licence_value)
-
-        # Filter playlists by the licence's source, niveau, and classe
-        return Playlist.objects.filter(
-            matiere=licence.source,
-            classe=licence.classe,
-        )
-
-
-
-class GetMyPlaylistsView(LicenceValidationMixin, generics.ListAPIView):
     serializer_class = PlaylistSerializer
     permission_classes = [permissions.IsAuthenticated, ValidLicencePermission]
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = MyPlaylistFilter
-    ordering_fields = ['nom', 'classe', 'niveau',]  # Specify fields to sort by
-    ordering = ['nom']  # Default ordering
+    ordering_fields = ['nom', 'classe__nom', 'niveau__nom']
+    ordering = ['nom']
 
     @swagger_auto_schema(
         operation_summary="Retrieve user playlists",
         operation_description="Get playlists filtered by various attributes and ordered as specified.",
         manual_parameters=[
-            openapi.Parameter('licence', openapi.IN_QUERY, description="Licence value to filter playlists", type=openapi.TYPE_STRING),
-            openapi.Parameter('search', openapi.IN_QUERY, description="Search term for playlist names", type=openapi.TYPE_STRING),
+            openapi.Parameter('licence', openapi.IN_QUERY, description="Licence value to filter playlists",
+                              type=openapi.TYPE_STRING),
+            openapi.Parameter('search', openapi.IN_QUERY, description="Search term for playlist names",
+                              type=openapi.TYPE_STRING),
             openapi.Parameter('ordering', openapi.IN_QUERY, description="Field to order by", type=openapi.TYPE_STRING),
             openapi.Parameter('group_by', openapi.IN_QUERY, description="Field to group by", type=openapi.TYPE_STRING),
         ]
@@ -147,23 +117,56 @@ class GetMyPlaylistsView(LicenceValidationMixin, generics.ListAPIView):
         if not licence_value:
             raise ValidationError("Licence value is required")
 
-        # Validate the licence
+        # Validate the licence of the requesting user
         licence = self.validate_licence(user, licence_value)
 
-        # Filter playlists by the licence's source, niveau, and classe
-        queryset = Playlist.objects.filter(
+        # Filter playlists created by users who have a licence with the same source as the provided licence
+        playlists = Playlist.objects.filter(
+            created_by__licences__source=licence.source,
             matiere=licence.source,
             classe=licence.classe,
+            niveau=licence.niveau
+        ).distinct()
+
+        # Group by attribute (if needed)
+        group_by = self.request.query_params.get('group_by')
+        if group_by:
+            playlists = playlists.values(group_by).annotate(count=models.Count(group_by))
+
+        return playlists
+
+
+class GetMyPlaylistsView(generics.ListAPIView):
+    serializer_class = PlaylistSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
+    filterset_class = MyPlaylistFilter
+    ordering_fields = ['nom', 'classe', 'niveau']  # Specify fields to sort by
+    ordering = ['nom']  # Default ordering
+
+    @swagger_auto_schema(
+        operation_summary="Retrieve user playlists",
+        operation_description="Get playlists filtered by various attributes and ordered as specified.",
+        manual_parameters=[
+            openapi.Parameter('search', openapi.IN_QUERY, description="Search term for playlist names", type=openapi.TYPE_STRING),
+            openapi.Parameter('ordering', openapi.IN_QUERY, description="Field to order by", type=openapi.TYPE_STRING),
+            openapi.Parameter('group_by', openapi.IN_QUERY, description="Field to group by", type=openapi.TYPE_STRING),
+        ]
+    )
+    def get_queryset(self):
+        user = self.request.user
+
+        # Filter playlists by the current user
+        queryset = Playlist.objects.filter(
+            created_by=user
         )
 
         # Group by attribute (if needed)
         group_by = self.request.query_params.get('group_by')
         if group_by:
-            # Note: Django ORM does not support group by directly; you may need to handle this differently
             queryset = queryset.values(group_by).annotate(count=models.Count(group_by))
 
         return queryset
-
 
 
 class PlaylistViewSet(viewsets.ReadOnlyModelViewSet):

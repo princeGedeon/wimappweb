@@ -6,17 +6,14 @@ from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 from rest_framework import serializers, generics, permissions, status
 from rest_framework.response import Response
 
-from licenceapp.models import Licence
+from licenceapp.models import Licence, Matiere
 from licenceapp.serializers import LicenceSerializer
 from .models import CustomUser
 User = get_user_model()
 
-
-
-
 from rest_framework import serializers
-
 from django.utils import timezone
+
 
 
 class AssignTuteurSerializer(serializers.Serializer):
@@ -34,16 +31,13 @@ class CustomUserUpdateSerializer(serializers.ModelSerializer):
         fields = ('id','username', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte')
 
 class UserCreateSerializer(UserCreateSerializer):
-
     """Serializer for creating user."""
-
     class Meta(UserCreateSerializer.Meta):
         model = User
         fields = ("id", "email", "username","password")
 
 class ProfileImageUpdateSerializer(serializers.ModelSerializer):
     profilImg = serializers.ImageField(required=True)
-
     class Meta:
         model = CustomUser
         fields = ['profilImg']

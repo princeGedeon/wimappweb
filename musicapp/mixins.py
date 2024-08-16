@@ -1,7 +1,5 @@
 from rest_framework import serializers
-
-from licenceapp.models import Licence
-
+from licenceapp.models import Licence, Classe, Niveau
 
 class LicenceFilterMixin:
     def filter_by_licence(self, queryset, licence_value):
@@ -11,10 +9,10 @@ class LicenceFilterMixin:
             raise serializers.ValidationError("Licence not found or inactive")
 
         # Filter queryset based on licence's classe and niveau
-        if hasattr(queryset.model, 'classe'):
-            queryset = queryset.filter(classe=licence.classe)
-        if hasattr(queryset.model, 'niveau'):
-            queryset = queryset.filter(niveau=licence.niveau)
+        if hasattr(queryset.model, 'classe') and licence.classe:
+            queryset = queryset.filter(classe__nom=licence.classe.nom)
+        if hasattr(queryset.model, 'niveau') and licence.niveau:
+            queryset = queryset.filter(niveau__nom=licence.niveau.nom)
 
         return queryset
 

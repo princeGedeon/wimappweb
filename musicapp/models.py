@@ -5,41 +5,29 @@ import requests
 from django.db import models
 from django.core.files.base import ContentFile
 from accountapp.models import CustomUser
-from licenceapp.models import Matiere
-from licenceapp.constants import CLASSE_CHOICES, NIVEAU_CHOICES
+from licenceapp.models import Matiere, Classe, Niveau
 
 
-MATIERE_CHOICES = [
-    ("Anglais", "Anglais"),
-    ("Bonus", "Bonus"),
-    ("Economie", "Economie"),
-    ("Espagnol", "Espagnol"),
-    ("Geographie", "Geographie"),
-    ("Histoire", "Histoire"),
-    ("Mathematiques", "Mathematiques"),
-    ("Philosophie", "Philosophie"),
-    ("SVT", "SVT"),
-]
+class StyleMusique(models.Model):
+    nom = models.CharField(max_length=100, unique=True)
 
-# Définir les choix pour les styles
-STYLE_CHOICES = [
-    ("POP", "POP"),
-    ("RAP", "RAP"),
-    ("ZOUK", "ZOUK"),
-]
+    def __str__(self):
+        return self.nom
 
-# Create your models here.
+
 class Music(models.Model):
     beatmaker = models.CharField(max_length=255)
-    classe = models.CharField(max_length=10, choices=CLASSE_CHOICES, null=True, blank=True)
+    classe = models.ForeignKey(Classe, on_delete=models.SET_NULL, null=True, blank=True, related_name='musics')
+    niveau = models.ForeignKey(Niveau, on_delete=models.SET_NULL, null=True, blank=True, related_name='musics')
     date_created = models.DateTimeField(auto_now_add=True)
-    duree_enreg = models.CharField(help_text="Duration in seconds",max_length=100, null=True, blank=True)
-    ecoutes = models.IntegerField(default=0,null=True,blank=True)
+    duree_enreg = models.CharField(help_text="Duration in seconds", max_length=100, null=True, blank=True)
+    ecoutes = models.IntegerField(default=0, null=True, blank=True)
     interprete = models.CharField(max_length=255)
     isFree = models.BooleanField(default=True)
     lyrics_enreg = models.TextField(null=True, blank=True)
-    style_enreg = models.CharField(max_length=255, choices=STYLE_CHOICES)
-    matiere = models.CharField(max_length=150, choices=MATIERE_CHOICES)  # Ajout du champ matière
+    style_enreg = models.ForeignKey(StyleMusique, on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name='musics')
+    matiere = models.ForeignKey(Matiere, on_delete=models.SET_NULL, null=True, blank=True, related_name='musics')
     theme = models.CharField(max_length=255)
     url_enreg = models.URLField()
     url_img = models.URLField(null=True, blank=True)
@@ -52,6 +40,7 @@ class Music(models.Model):
         return self.theme
 
     def download_files(self):
+        # Validation des URL avant téléchargement
         if self.url_img and not self.file_img:
             response = requests.get(self.url_img)
             if response.status_code == 200:
@@ -74,14 +63,14 @@ class Music(models.Model):
 class Playlist(models.Model):
     nom = models.CharField(max_length=255)
     is_public = models.BooleanField(default=True)
-    classe = models.CharField(max_length=30, choices=CLASSE_CHOICES, null=True, blank=True)
-    matiere = models.CharField(max_length=150, choices=MATIERE_CHOICES)
-    niveau=models.CharField(max_length=150,default="",null=True,blank=True)
+    classe = models.ForeignKey(Classe, on_delete=models.SET_NULL, null=True, blank=True, related_name='playlists')
+    niveau = models.ForeignKey(Niveau, on_delete=models.SET_NULL, null=True, blank=True, related_name='playlists')
+    matiere = models.ForeignKey(Matiere, on_delete=models.SET_NULL, null=True, blank=True, related_name='playlists')
     created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='playlists')
     musics = models.ManyToManyField(Music, related_name='playlists')
 
     def __str__(self):
-        return self.nom
+        return f'{self.nom} (Public: {self.is_public})'
 
 
 class Favori(models.Model):
@@ -90,4 +79,4 @@ class Favori(models.Model):
     title = models.CharField(max_length=255)
 
     def __str__(self):
-        return self.title
+        return f'{self.title} - {self.user.username}'
