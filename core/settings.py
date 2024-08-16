@@ -242,6 +242,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://app.workinmusic.fr",
 "https://www.app.workinmusic.fr",
     "http://www.app.workinmusic.fr",
+    "http://127.0.0.1:5173",
+    "https://127.0.0.1:5173",
 "http://localhost:8001",
 "http://127.0.0.1:9000",
 "http://localhost:8000",
