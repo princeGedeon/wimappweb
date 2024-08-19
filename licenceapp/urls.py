@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from licenceapp.views import LicenceViewSet, AddLicenceKey, UploadLicencesForStudentsView, \
-    UploadLicencesForTeachersView, UpdateLevelLicencesView, UserLicencesView, MatiereListView, MatiereListCreateView, \
+    UploadLicencesForTeachersView, UpdateLevelLicencesView, UserLicencesView,  MatiereListCreateView, \
     MatiereDetailView, ClasseListCreateView, ClasseDetailView, NiveauListCreateView, NiveauDetailView
 
 router = DefaultRouter()
