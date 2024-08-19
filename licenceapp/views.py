@@ -3,7 +3,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
-from rest_framework import status, viewsets, permissions
+from rest_framework import status, viewsets, permissions, generics
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -14,7 +14,7 @@ from drf_yasg import openapi
 
 from accountapp.models import CustomUser
 from licenceapp.models import Source, Matiere, Licence, Classe, Niveau
-from licenceapp.serializers import LicenceSerializer, MatiereSerializer
+from licenceapp.serializers import LicenceSerializer, MatiereSerializer, ClasseSerializer, NiveauSerializer
 
 
 class UploadLicencesForStudentsView(APIView):
@@ -387,6 +387,42 @@ class UserLicencesView(APIView):
         return Response(serializer.data)
 
 
-class MatiereListView(ListAPIView):
+
+class MatiereListCreateView(generics.ListCreateAPIView):
     queryset = Matiere.objects.all()
     serializer_class = MatiereSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [IsAdminUser]
+        return super().get_permissions()
+
+class MatiereDetailView(generics.RetrieveAPIView):
+    queryset = Matiere.objects.all()
+    serializer_class = MatiereSerializer
+
+class ClasseListCreateView(generics.ListCreateAPIView):
+    queryset = Classe.objects.all()
+    serializer_class = ClasseSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [IsAdminUser]
+        return super().get_permissions()
+
+class ClasseDetailView(generics.RetrieveAPIView):
+    queryset = Classe.objects.all()
+    serializer_class = ClasseSerializer
+
+class NiveauListCreateView(generics.ListCreateAPIView):
+    queryset = Niveau.objects.all()
+    serializer_class = NiveauSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [IsAdminUser]
+        return super().get_permissions()
+
+class NiveauDetailView(generics.RetrieveAPIView):
+    queryset = Niveau.objects.all()
+    serializer_class = NiveauSerializer

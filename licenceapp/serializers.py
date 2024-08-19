@@ -6,6 +6,19 @@ class MatiereSerializer(serializers.ModelSerializer):
         model = Matiere
         fields = ['id', 'nom', 'image', 'color']
 
+
+
+
+class ClasseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Classe
+        fields = '__all__'
+
+class NiveauSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Niveau
+        fields = '__all__'
+
 class UploadLicencesSerializer(serializers.Serializer):
     source_id = serializers.IntegerField()
     file = serializers.FileField()
