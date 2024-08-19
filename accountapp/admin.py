@@ -6,12 +6,11 @@ from licenceapp.models import Licence
 
 class CustomUserAdmin(BaseUserAdmin):
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
+        (None, {'fields': ('email','secondary_email','password')}),
         (_('Personal info'), {'fields': ('username', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte')}),
         (_('Permissions'), {'fields': ('is_active', 'is_admin', 'is_staff_member', 'is_superuser')}),
         (_('Important dates'), {'fields': ('last_login',)}),
         (_('Licences'), {'fields': ('licences',)}),
-        (_("Information tuteur",{'fields': ('secondary_email',)}))
     )
     add_fieldsets = (
         (None, {
@@ -19,8 +18,8 @@ class CustomUserAdmin(BaseUserAdmin):
             'fields': ('email', 'password1', 'password2', 'fullname', 'age', 'genre', 'numTel', 'pays', 'ville', 'profilImg', 'typeCompte', 'is_active', 'is_admin', 'is_staff_member', 'is_superuser')}
         ),
     )
-    list_display = ('email', 'username', 'is_admin', 'is_active', 'is_staff_member', 'is_superuser','is_auto')
-    search_fields = ('email', 'username')
+    list_display = ('email', 'username', 'is_admin', 'is_active', 'is_staff_member', 'is_superuser','is_auto','secondary_email')
+    search_fields = ('email', 'username','secondary_email')
     ordering = ('email',)
 
     # Removing filter_horizontal and list_filter definitions
