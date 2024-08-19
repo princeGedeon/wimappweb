@@ -11,6 +11,7 @@ class CustomUserAdmin(BaseUserAdmin):
         (_('Permissions'), {'fields': ('is_active', 'is_admin', 'is_staff_member', 'is_superuser')}),
         (_('Important dates'), {'fields': ('last_login',)}),
         (_('Licences'), {'fields': ('licences',)}),
+        (_("Information tuteur",{'fields': ('secondary_email',)}))
     )
     add_fieldsets = (
         (None, {
