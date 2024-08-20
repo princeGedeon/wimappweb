@@ -79,7 +79,7 @@ Ce projet Django est configuré pour être exécuté avec Docker en production. 
        'default': {
            'ENGINE': 'django.db.backends.mysql',
            'NAME': ...,
-           'USER': ...,,
+           'USER': ...,
            'PASSWORD': ...,
            'HOST': ...,
            'PORT': ...,

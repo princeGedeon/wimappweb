@@ -87,8 +87,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-'corsheaders.middleware.CorsMiddleware',
+
     "allauth.account.middleware.AccountMiddleware",
+'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     "social_django.middleware.SocialAuthExceptionMiddleware",
@@ -238,6 +239,10 @@ MEDIA_URL = '/media/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS=[
     "http://localhost:3000",
+]
+CORS_ORIGIN_WHITELIST = [
+'http://localhost:3000',
+'http://127.0.0.1:3000'
 ]
 #CORS_ORIGIN_ALLOW_ALL = True  # or False
 #CORS_ALLOW_CREDENTIALS = True
