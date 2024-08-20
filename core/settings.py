@@ -236,11 +236,13 @@ MEDIA_URL = '/media/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-CORS_ORIGIN_ALLOW_ALL = True  # or False
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ORIGIN_ALLOW = True
+CORS_ALLOWED_ORIGINS=[
+    "http://localhost:3000",
+]
+#CORS_ORIGIN_ALLOW_ALL = True  # or False
+#CORS_ALLOW_CREDENTIALS = True
+#CORS_ALLOW_ALL_ORIGINS = True
+#CORS_ORIGIN_ALLOW = True
 AUTH_USER_MODEL = 'accountapp.CustomUser'
 CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://app.workinmusic.fr","http://app.workinmusic.fr"]
 
@@ -298,7 +300,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
 # Facebook configuration
 SOCIAL_AUTH_FACEBOOK_KEY = config('SOCIAL_AUTH_FACEBOOK_KEY')
 SOCIAL_AUTH_FACEBOOK_SECRET = config("SOCIAL_AUTH_FACEBOOK_SECRET")
-
+SOCIAL_AUTH_FACEBOOK_API_VERSION = '2.10'
 # Define SOCIAL_AUTH_FACEBOOK_SCOPE to get extra permissions from Facebook.
 # Email is not sent by default, to get it, you must request the email permission.
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']

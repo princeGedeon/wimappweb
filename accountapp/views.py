@@ -1,17 +1,22 @@
 # Create your views here.
+from django.contrib.auth import login
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from requests import HTTPError
 from rest_framework import generics, permissions
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from social_core.backends.oauth import BaseOAuth2
+from social_core.exceptions import AuthTokenError, MissingBackend, AuthForbidden
+from social_django.utils import load_backend, load_strategy
 
 from licenceapp.serializers import LicenceSerializer
 from .models import CustomUser, OTP
 from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer, AssignTuteurSerializer, \
-    ProfileImageUpdateSerializer, CustomLoginSerializer
+    ProfileImageUpdateSerializer, CustomLoginSerializer, SocialSerializer
 from django.conf import settings
 from firebase_admin import auth
 from rest_framework.views import APIView
@@ -407,3 +412,72 @@ class CustomLoginView(APIView):
             }
             return Response(response_data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SocialLoginView(generics.GenericAPIView):
+    """Log in using facebook"""
+    serializer_class = SocialSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        """Authenticate user through the provider and access_token"""
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        provider = serializer.data.get('provider', None)
+        strategy = load_strategy(request)
+
+        try:
+            backend = load_backend(strategy=strategy, name=provider,
+                                   redirect_uri=None)
+
+        except MissingBackend:
+            return Response({'error': 'Please provide a valid provider'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if isinstance(backend, BaseOAuth2):
+                access_token = serializer.data.get('access_token')
+            user = backend.do_auth(access_token)
+        except HTTPError as error:
+            return Response({
+                "error": {
+                    "access_token": "Invalid token",
+                    "details": str(error)
+                }
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except AuthTokenError as error:
+            return Response({
+                "error": "Invalid credentials",
+                "details": str(error)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            authenticated_user = backend.do_auth(access_token, user=user)
+
+        except HTTPError as error:
+            return Response({
+                "error": "invalid token",
+                "details": str(error)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        except AuthForbidden as error:
+            return Response({
+                "error": "invalid token",
+                "details": str(error)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if authenticated_user and authenticated_user.is_active:
+            # generate JWT token
+            refresh = RefreshToken.for_user(user)
+            data = {
+                 'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }
+            # customize the response to your needs
+            response = {
+                "email": authenticated_user.email,
+                "username": authenticated_user.username,
+                "token": data.get('token')
+            }
+            return Response(status=status.HTTP_200_OK, data=response)
+
+
