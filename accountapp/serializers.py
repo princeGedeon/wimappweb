@@ -5,7 +5,7 @@ from djoser.serializers import UserCreateSerializer
 from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 from requests import HTTPError
 from rest_framework import serializers, generics, permissions, status
-from rest_framework.response import Responseg
+from rest_framework.response import Response
 from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import AuthForbidden, AuthTokenError, MissingBackend
 from social_django.utils import load_backend, load_strategy
