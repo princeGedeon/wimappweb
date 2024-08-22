@@ -21,7 +21,6 @@ django-rest-framework-social-oauth2==1.2.0
 django-storages==1.14.3
 django-templated-mail==1.1.1
 djangorestframework==3.15.1
-djangorestframework-jwt==1.11.0
 djangorestframework-simplejwt==5.3.1
 djoser==2.2.3
 drf-yasg==1.21.7
@@ -68,8 +67,7 @@ rsa==4.9
 s3transfer==0.10.2
 six==1.16.0
 social-auth-app-django==5.4.1
-social-auth-core
-djangorestframework-jwt
+social-auth-core==4.5.4
 sqlparse==0.5.0
 tablib==3.5.0
 typing_extensions==4.12.2

@@ -12,11 +12,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import AuthTokenError, MissingBackend, AuthForbidden
 from social_django.utils import load_backend, load_strategy
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from licenceapp.serializers import LicenceSerializer
 from .models import CustomUser, OTP
 from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer, AssignTuteurSerializer, \
-    ProfileImageUpdateSerializer, CustomLoginSerializer, SocialSerializer, jwt_encode_handler, jwt_payload_handler
+    ProfileImageUpdateSerializer, CustomLoginSerializer, SocialSerializer
 from django.conf import settings
 
 from rest_framework.views import APIView
@@ -320,7 +321,7 @@ class CustomLoginView(APIView):
 
 
 class SocialLoginView(generics.GenericAPIView):
-    """Log in using facebook"""
+    """Log in using Facebook or another provider"""
     serializer_class = SocialSerializer
     permission_classes = (permissions.AllowAny,)
 
@@ -371,18 +372,20 @@ class SocialLoginView(generics.GenericAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         if authenticated_user and authenticated_user.is_active:
-            # generate JWT token
+            # Log in the user
             login(request, authenticated_user)
-            data = {
-                "token": jwt_encode_handler(
-                    jwt_payload_handler(user)
-                )}
-            # customize the response to your needs
+
+            # Generate JWT token using simplejwt
+            refresh = RefreshToken.for_user(authenticated_user)
+            access_token = str(refresh.access_token)
+
+            # Customize the response to your needs
             response = {
                 "email": authenticated_user.email,
                 "username": authenticated_user.username,
-                "token": data.get('token')
+                "token": access_token,
+                "refresh_token": str(refresh)  # Optional, if you want to return the refresh token
             }
             return Response(status=status.HTTP_200_OK, data=response)
 
-
+        return Response(status=status.HTTP_400_BAD_REQUEST)

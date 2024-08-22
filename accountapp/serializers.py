@@ -19,9 +19,6 @@ from django.utils import timezone
 from rest_framework import serializers
 
 
-jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-
 
 
 class AssignTuteurSerializer(serializers.Serializer):
