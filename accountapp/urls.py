@@ -19,5 +19,6 @@ path("auth/social/", include("djoser.social.urls")),
 path('auth/generate-otp/', GenerateOTPAPIView.as_view(), name='generate-otp'),
     path('auth/verify-otp/', VerifyOTPAPIView.as_view(), name='verify-otp'),
     path('update-profile-image/', ProfileImageUpdateView.as_view(), name='update-profile-image'),
+    path('oauthfull/login/', SocialLoginView.as_view()),
 
 ]
