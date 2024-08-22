@@ -16,7 +16,7 @@ from social_django.utils import load_backend, load_strategy
 from licenceapp.serializers import LicenceSerializer
 from .models import CustomUser, OTP
 from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer, AssignTuteurSerializer, \
-    ProfileImageUpdateSerializer, CustomLoginSerializer, SocialSerializer
+    ProfileImageUpdateSerializer, CustomLoginSerializer, SocialSerializer, jwt_encode_handler, jwt_payload_handler
 from django.conf import settings
 from firebase_admin import auth
 from rest_framework.views import APIView
@@ -417,7 +417,7 @@ class CustomLoginView(APIView):
 class SocialLoginView(generics.GenericAPIView):
     """Log in using facebook"""
     serializer_class = SocialSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         """Authenticate user through the provider and access_token"""
@@ -427,15 +427,16 @@ class SocialLoginView(generics.GenericAPIView):
         strategy = load_strategy(request)
 
         try:
-            backend = load_backend(strategy=strategy, name=provider,
-                                   redirect_uri=None)
-
+            backend = load_backend(strategy=strategy, name=provider, redirect_uri=None)
         except MissingBackend:
-            return Response({'error': 'Please provide a valid provider'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'error': 'Please provide a valid provider'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             if isinstance(backend, BaseOAuth2):
                 access_token = serializer.data.get('access_token')
+
             user = backend.do_auth(access_token)
         except HTTPError as error:
             return Response({
@@ -452,26 +453,25 @@ class SocialLoginView(generics.GenericAPIView):
 
         try:
             authenticated_user = backend.do_auth(access_token, user=user)
-
         except HTTPError as error:
             return Response({
-                "error": "invalid token",
+                "error": "Invalid token",
                 "details": str(error)
             }, status=status.HTTP_400_BAD_REQUEST)
 
         except AuthForbidden as error:
             return Response({
-                "error": "invalid token",
+                "error": "Invalid token",
                 "details": str(error)
             }, status=status.HTTP_400_BAD_REQUEST)
 
         if authenticated_user and authenticated_user.is_active:
             # generate JWT token
-            refresh = RefreshToken.for_user(user)
+            login(request, authenticated_user)
             data = {
-                 'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }
+                "token": jwt_encode_handler(
+                    jwt_payload_handler(user)
+                )}
             # customize the response to your needs
             response = {
                 "email": authenticated_user.email,
