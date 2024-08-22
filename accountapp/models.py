@@ -37,6 +37,7 @@ class CustomUser(AbstractBaseUser):
     profilImg=models.ImageField(upload_to="images_profil/", null=True, blank=True)
     typeCompte = models.CharField(max_length=10, choices=[('STANDARD', 'Standard'), ('PREMIUM', 'Premium')],
                                   default='STANDARD')
+    is_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_staff_member = models.BooleanField(default=False)
