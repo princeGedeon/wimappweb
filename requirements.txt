@@ -56,7 +56,6 @@ protobuf==4.25.3
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
 pycparser==2.22
-PyJWT==1.7.1
 pyparsing==3.1.2
 python-dateutil==2.9.0.post0
 python-decouple==3.8
@@ -69,9 +68,11 @@ rsa==4.9
 s3transfer==0.10.2
 six==1.16.0
 social-auth-app-django==5.4.1
+social-auth-core==4.5.4
 sqlparse==0.5.0
 tablib==3.5.0
 typing_extensions==4.12.2
 tzdata==2024.1
 uritemplate==4.1.1
 urllib3==2.2.2
+PyJWT
