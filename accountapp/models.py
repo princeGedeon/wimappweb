@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from core import settings
 from licenceapp.models import Licence
@@ -20,6 +21,10 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff_member', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
+
+
+AUTH_PROVIDERS = {'facebook': 'facebook', 'google': 'google',
+                  'twitter': 'twitter', 'email': 'email'}
 
 class CustomUser(AbstractBaseUser):
     email = models.EmailField(unique=True)
@@ -42,12 +47,22 @@ class CustomUser(AbstractBaseUser):
     tuteur = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='tutored_users')
     secondary_email = models.EmailField(null=True, blank=True,help_text="Email du tuteur",default="",verbose_name="Email secondaire de l'utilisateur")
     objects = CustomUserManager()
+    auth_provider = models.CharField(
+        max_length=255, blank=False,
+        null=False, default=AUTH_PROVIDERS.get('email'))
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['username']
 
     def __str__(self):
         return self.email
+
+    def tokens(self):
+        refresh = RefreshToken.for_user(self)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }
 
     def has_perm(self, perm, obj=None):
         return True

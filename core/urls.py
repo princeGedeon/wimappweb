@@ -47,5 +47,7 @@ path('licence/', include('licenceapp.urls')),
 path('music/', include('musicapp.urls')),
     path('auths/', include('accountapp.urls')),
     path(r'social/', include('rest_framework_social_oauth2.urls',namespace='auth-api')),
+path('social_auth/', include(('social_auth.urls', 'social_auth'),
+                                 namespace="social_auth")),
 
 ]
