@@ -25,7 +25,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from accountapp.models import CustomUser
 from accountapp.serializers import CustomUserCreateSerializer
-from firebase_admin import auth as firebase_auth
+
 import random
 
 from allauth.socialaccount.providers.apple.views import AppleOAuth2Adapter
@@ -41,101 +41,6 @@ class AppleLogin(SocialLoginView):
 
 
 
-class GoogleLoginAPIView(APIView):
-    @swagger_auto_schema(
-        operation_description="Authentifier un utilisateur avec le jeton d'identification Google",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'id_token': openapi.Schema(type=openapi.TYPE_STRING, description='Jeton d\'identification Google')
-            },
-            required=['id_token']
-        ),
-        responses={
-            200: openapi.Response(
-                description="Authentification réussie",
-                examples={
-                    "application/json": {
-                        "refresh": "string",
-                        "access": "string"
-                    }
-                }
-            ),
-            400: openapi.Response(
-                description="Requête invalide",
-                examples={
-                    "application/json": {
-                        "detail": "Jeton d'identification requis."
-                    }
-                }
-            ),
-            404: openapi.Response(
-                description="Utilisateur non trouvé",
-                examples={
-                    "application/json": {
-                        "detail": "Utilisateur non trouvé."
-                    }
-                }
-            ),
-            500: openapi.Response(
-                description="Erreur interne du serveur",
-                examples={
-                    "application/json": {
-                        "detail": "Erreur lors de la vérification du jeton."
-                    }
-                }
-            ),
-        }
-    )
-    def post(self, request):
-        id_token = request.data.get("id_token")
-        if not id_token:
-            return Response({"detail": "Jeton d'identification requis."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            # Vérifier le jeton avec Firebase Admin SDK
-            decoded_token = firebase_auth.verify_id_token(id_token)
-            email = decoded_token.get('email')
-            google_user_id = decoded_token.get('uid')
-
-            if not email:
-                return Response({"detail": "Impossible de récupérer l'email à partir du jeton."}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Vérifier si l'utilisateur existe déjà dans la base de données
-            try:
-                user = CustomUser.objects.get(email=email)
-            except CustomUser.DoesNotExist:
-                # Créer un nouvel utilisateur s'il n'existe pas
-                user_data = {
-                    "email": email,
-                    "password": None,  # Vous pouvez générer un mot de passe aléatoire si nécessaire
-                    "username": decoded_token.get('name', ''),
-                    'age': None,
-                    'genre': None,
-                    'numTel': "",
-                    'pays': "",
-                    'ville': "",
-                    'typeCompte': "STANDARD"
-                }
-                serializer = CustomUserCreateSerializer(data=user_data)
-                if serializer.is_valid():
-                    user = serializer.save()
-                else:
-                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-            # Générer un jeton JWT pour l'utilisateur
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            }, status=status.HTTP_200_OK)
-
-        except firebase_auth.InvalidIdTokenError:
-            return Response({"detail": "Jeton d'identification invalide."}, status=status.HTTP_400_BAD_REQUEST)
-        except firebase_auth.ExpiredIdTokenError:
-            return Response({"detail": "Jeton d'identification expiré."}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({"detail": "Erreur lors de la vérification du jeton."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UpdateUserInfoView(generics.UpdateAPIView):
     serializer_class = CustomUserUpdateSerializer
