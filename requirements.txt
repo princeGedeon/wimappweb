@@ -24,8 +24,7 @@ djangorestframework==3.15.1
 djangorestframework-simplejwt==5.3.1
 djoser==2.2.3
 drf-yasg==1.21.7
-et-xmlfile==1.1.0
-firebase-admin==6.5.0
+et-xmlfile==1.1.0g
 google-api-core==2.19.1
 google-api-python-client==2.134.0
 google-auth==2.30.0

@@ -18,7 +18,7 @@ from .models import CustomUser, OTP
 from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer, AssignTuteurSerializer, \
     ProfileImageUpdateSerializer, CustomLoginSerializer, SocialSerializer, jwt_encode_handler, jwt_payload_handler
 from django.conf import settings
-from firebase_admin import auth
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
