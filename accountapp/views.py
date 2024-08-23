@@ -110,7 +110,7 @@ class GenerateOTPAPIView(APIView):
         send_mail(
             "Votre code de vérification",
             f"Votre code de vérification est {otp_code}",
-            "from@example.com",
+            "wim-ai@workinmusic.fr",
             [email],
         )
 
