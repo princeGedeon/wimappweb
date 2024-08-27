@@ -38,7 +38,7 @@ SECRET_KEY = 'django-insecure-pd7(cbqees77gvuo1bl^mdpbiiowe4g*xa2v_e$breh93q=xq_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["app.workinmusic.fr","*"]
+ALLOWED_HOSTS = ["api.workinmusic.fr","*"]
 
 
 # Application definition
@@ -80,7 +80,8 @@ INSTALLED_APPS = [
     "accountapp",
     "licenceapp",
     "musicapp",
-    "quizzapp"
+    "quizzapp",
+    "paiementapp"
 ]
 
 MIDDLEWARE = [
