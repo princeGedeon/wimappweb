@@ -38,7 +38,7 @@ SECRET_KEY = 'django-insecure-pd7(cbqees77gvuo1bl^mdpbiiowe4g*xa2v_e$breh93q=xq_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["api.workinmusic.fr","*"]
+ALLOWED_HOSTS = ["api.workinmusic.fr","146.59.196.155","*"]
 
 
 # Application definition
@@ -244,7 +244,7 @@ CORS_ORIGIN_ALLOW_ALL = True  # or False
 #CORS_ALLOW_ALL_ORIGINS = True
 #CORS_ORIGIN_ALLOW = True
 AUTH_USER_MODEL = 'accountapp.CustomUser'
-CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://app.workinmusic.fr","http://app.workinmusic.fr"]
+CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://api.workinmusic.fr","http://api.workinmusic.fr"]
 
 #Djsoer
 DJOSER = {
