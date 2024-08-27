@@ -13,7 +13,6 @@ from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import AuthTokenError, MissingBackend, AuthForbidden
 from social_django.utils import load_backend, load_strategy
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from licenceapp.serializers import LicenceSerializer
 from .models import CustomUser, OTP
 from .serializers import CustomUserUpdateSerializer, CustomUserCreateSerializer, AssignTuteurSerializer, \
