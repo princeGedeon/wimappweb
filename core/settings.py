@@ -126,7 +126,9 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
        # 'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
        # 'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
-        'rest_framework_social_oauth2.authentication.SocialAuthentication',
+        #'rest_framework_social_oauth2.authentication.SocialAuthentication',
+'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'drf_social_oauth2.authentication.SocialAuthentication',
 
     ),
     'DEFAULT_PERMISSION_CLASSES': (
@@ -275,10 +277,8 @@ AUTHENTICATION_BACKENDS = [
 
     # Google OAuth2
     'social_core.backends.google.GoogleOAuth2',
-    'rest_framework_social_oauth2.backends.DjangoOAuth2',
-
-    "django.contrib.auth.backends.ModelBackend",
-    'allauth.account.auth_backends.AuthenticationBackend',
+    'drf_social_oauth2.backends.DjangoOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
 
 
 
@@ -294,7 +294,10 @@ SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 FACEBOOK_EXTENDED_PERMISSIONS = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {'fields': 'id, name, email'}
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['email', 'profile']
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+]
 
 SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'email']
 SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
