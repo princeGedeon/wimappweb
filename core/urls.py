@@ -50,4 +50,5 @@ path('music/', include('musicapp.urls')),
 path('social_auth/', include(('social_auth.urls', 'social_auth'),
                                  namespace="social_auth")),
 path('api-auth/', include('drf_social_oauth2.urls',namespace='drf')),
+    path("paiement/",include('paiementapp.urls')),
 ]
