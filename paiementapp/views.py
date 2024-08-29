@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 
 # Create your views here.
@@ -9,9 +11,51 @@ import stripe
 
 
 
+
 class PaymentAPI(APIView):
     serializer_class = CardInformationSerializer
 
+    @swagger_auto_schema(
+        operation_description="Effectue un paiement par carte avec Stripe",
+        request_body=CardInformationSerializer,
+        responses={
+            200: openapi.Response(
+                description="Paiement réussi",
+                examples={
+                    "application/json": {
+                        'message': "Card Payment Success",
+                        'status': 200,
+                        "card_details": {
+                            "type": "card",
+                            "card": {
+                                "number": "**** **** **** 4242",
+                                "exp_month": "12",
+                                "exp_year": "2025",
+                                "cvc": "***",
+                            },
+                        },
+                        "payment_intent": {
+                            "id": "pi_1F4A1H2eZvKYlo2C2bwNaVtQ",
+                            "status": "succeeded",
+                        },
+                        "payment_confirm": {
+                            "id": "pi_1F4A1H2eZvKYlo2C2bwNaVtQ",
+                            "status": "succeeded",
+                        }
+                    }
+                }
+            ),
+            400: openapi.Response(
+                description="Échec du paiement",
+                examples={
+                    "application/json": {
+                        'errors': {'card_number': ['Ce champ est requis.']},
+                        'status': status.HTTP_400_BAD_REQUEST
+                    }
+                }
+            ),
+        }
+    )
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         response = {}
@@ -19,14 +63,13 @@ class PaymentAPI(APIView):
             data_dict = serializer.data
             stripe.api_key = 'your-key-goes-here'
             response = self.stripe_card_payment(data_dict=data_dict)
-
         else:
-            response = {'errors': serializer.errors, 'status':
-                status.HTTP_400_BAD_REQUEST
-                        }
+            response = {
+                'errors': serializer.errors,
+                'status': status.HTTP_400_BAD_REQUEST
+            }
 
         return Response(response)
-
 
     def stripe_card_payment(self, data_dict):
         try:
@@ -87,6 +130,7 @@ class PaymentAPI(APIView):
                     "payment_intent": payment_intent_modified,
                     "payment_confirm": payment_confirm
                 }
+
         except stripe.error.StripeError as e:
             # Gérer les erreurs Stripe générales
             response = {
