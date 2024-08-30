@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+'django.contrib.sites',
 'allauth',
 'allauth.account',
 
@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     "paiementapp"
 ]
 
+SITE_ID = 1
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -120,7 +121,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'core.urls'
 
+REST_AUTH = {
 
+    'USE_JWT': True,
+}
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -338,6 +342,7 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, name, email'
 }
 
+
 #Pipeline
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
@@ -374,7 +379,9 @@ pIk4fLQk
 -----END PRIVATE KEY-----"""
 SOCIAL_AUTH_APPLE_ID_SCOPE = ['email', 'name']
 SOCIAL_AUTH_APPLE_ID_EMAIL_AS_USERNAME = True
-
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+# Connect local account and social account if local account with that email address already exists
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
 SOCIALACCOUNT_PROVIDERS = {
     'apple': {
@@ -396,11 +403,10 @@ SOCIALACCOUNT_PROVIDERS = {
             'secret': SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
             'key': SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
         },
-        "SCOPE": [
-            "profile",
-            "email",
-        ],
-
+    "SCOPE": ["profile", "email"],
+    "AUTH_PARAMS": {
+        "access_type": "online",
+    },
 
 
 
@@ -432,7 +438,7 @@ SOCIALACCOUNT_PROVIDERS = {
 # settings.py
 
 # Import necessary modules
-
+GOOGLE_OAUTH_CALLBACK_URL="http://localhost:8000"
 if config("mode")=="prod":
     # Set the required AWS credentials
     AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")

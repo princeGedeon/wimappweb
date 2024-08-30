@@ -9,7 +9,6 @@ router = DefaultRouter()
 
 router.register(r'licences', LicenceViewSet)
 
-
 urlpatterns = [
     path('add-licence/', AddLicenceKey.as_view(), name='add-licence'),
 

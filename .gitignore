@@ -1,10 +1,10 @@
 venv
 data
 .env
+./db.sqlite3
 ./workinmusic-30b37-firebase-adminsdk-h7ihz-8152566065.json
 accountapp/migrations/
 licenceapp/migrations/
 quizzapp/migrations/
 musicapp/migrations/
 paiementapp/migrations
-db.sqlite3
