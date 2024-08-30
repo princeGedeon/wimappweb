@@ -11,12 +11,13 @@ defusedxml==0.8.0rc2
 diff-match-patch==20230430
 dj-rest-auth==6.0.0
 Django==5.0.6
-django-allauth==0.63.3
+django-allauth==64.2.0
 django-cors-headers==4.3.1
 django-environ==0.11.2
 django-filter==24.2
 django-import-export==4.0.9
 django-oauth-toolkit==2.4.0
+django-rest-auth==0.9.5
 django-rest-framework-social-oauth2==1.2.0
 django-storages==1.14.3
 django-templated-mail==1.1.1

@@ -9,6 +9,18 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+from django.utils.translation import gettext_lazy as original_gettext_lazy
+
+# Remplacer ugettext_lazy par gettext_lazy
+import django.utils.translation
+django.utils.translation.ugettext_lazy = original_gettext_lazy
+from django.utils.encoding import force_str
+
+# Remplacer force_text par force_str
+import django.utils.encoding
+django.utils.encoding.force_text = force_str
+
+
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -50,18 +62,28 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
 'allauth',
+'allauth.account',
+
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.apple',
     'oauth2_provider',
     'social_django',
     'rest_framework_social_oauth2',
-    'allauth.account',
-    'allauth.socialaccount',
-    'storages',
+
+
 
     "corsheaders",
     'rest_framework',
 'dj_rest_auth',
+
+
     'dj_rest_auth.registration',
+
+    'storages',
 
 
 
@@ -74,9 +96,6 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     'drf_yasg',
 
-
-
-    #----
     "accountapp",
     "licenceapp",
     "musicapp",
@@ -88,13 +107,14 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 
-    "allauth.account.middleware.AccountMiddleware",
+
 'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -113,8 +133,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                "social_django.context_processors.backends",
-                "social_django.context_processors.login_redirect",
+
+
             ],
         },
     },
@@ -124,9 +144,7 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-       # 'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
-       # 'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
-        #'rest_framework_social_oauth2.authentication.SocialAuthentication',
+
 'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
         'drf_social_oauth2.authentication.SocialAuthentication',
 
@@ -235,16 +253,12 @@ STATICFILES_DIRS=[ os.path.join(BASE_DIR, 'statics')]
 MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 MEDIA_URL = '/media/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ORIGIN_ALLOW_ALL = True  # or False
-#CORS_ALLOW_CREDENTIALS = True
-#CORS_ALLOW_ALL_ORIGINS = True
-#CORS_ORIGIN_ALLOW = True
+
 AUTH_USER_MODEL = 'accountapp.CustomUser'
 CSRF_TRUSTED_ORIGINS = ['https://*.workinmusic.fr','https://*.127.0.0.1',"https://back.workinmusic.fr","http://back.workinmusic.fr"]
 
@@ -271,6 +285,7 @@ DJOSER = {
 }
 # Auth
 AUTHENTICATION_BACKENDS = [
+
     # Facebook OAuth2
 
     'social_core.backends.facebook.FacebookOAuth2',
@@ -279,7 +294,8 @@ AUTHENTICATION_BACKENDS = [
     'social_core.backends.google.GoogleOAuth2',
     'drf_social_oauth2.backends.DjangoOAuth2',
     'django.contrib.auth.backends.ModelBackend',
-
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
 
 
 ]
@@ -370,7 +386,47 @@ SOCIALACCOUNT_PROVIDERS = {
                 'private_key': SOCIAL_AUTH_APPLE_ID_SECRET,
             },
         }
-    }
+    },
+'google': {
+        # For each OAuth based provider, either add a ``SocialApp``
+        # (``socialaccount`` app) containing the required client
+        # credentials, or list them here:
+        'APP': {
+            'client_id': '123',
+            'secret': SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
+            'key': SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+        },
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+
+
+
+
+},
+'facebook':
+       {'METHOD': 'oauth2',
+        'SCOPE': ['email','public_profile', 'user_friends'],
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'FIELDS': [
+            'id',
+            'email',
+            'name',
+            'first_name',
+            'last_name',
+            'verified',
+            'locale',
+            'timezone',
+            'link',
+            'gender',
+            'updated_time'],
+        'EXCHANGE_TOKEN': True,
+        'LOCALE_FUNC': lambda request: 'kr_KR',
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v2.4'}
+
+
 }
 
 # settings.py

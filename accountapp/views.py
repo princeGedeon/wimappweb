@@ -1,4 +1,5 @@
 # Create your views here.
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import login
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
@@ -30,7 +31,11 @@ import random
 
 from allauth.socialaccount.providers.apple.views import AppleOAuth2Adapter
 from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 
+
+#from rest_auth.registration.views import SocialLoginView
 class AppleLogin(SocialLoginView):
     adapter_class = AppleOAuth2Adapter
 
@@ -388,3 +393,10 @@ class SocialLoginView(generics.GenericAPIView):
             return Response(status=status.HTTP_200_OK, data=response)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
