@@ -5,9 +5,8 @@ from musicapp.models import StyleMusique
 # Liste des classes à ajouter
 classes = ['Terminale', 'Cinquième', 'Sixième', 'Quatrième', 'Première', 'Seconde', 'Troisième']
 
-# Liste des styles de musique à ajouter
+# Liste des styles de  dmusique à ajouter
 styles = ['RAP', 'POP', 'ZOUK']
-
 # Liste des matières à ajouter
 matieres = ['SVT', 'Philosophie', 'Mathematiques', 'Histoire', 'Geographie', 'Espagnol', 'Economie', 'Bonus', 'Anglais']
 
