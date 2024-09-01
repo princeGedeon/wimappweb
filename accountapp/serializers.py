@@ -87,3 +87,13 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id','email', 'username', "is_auto",'age', 'genre', 'numTel', 'pays', 'ville','fcm', 'profilImg', 'typeCompte', 'is_active', 'is_admin', 'is_staff_member', 'is_superuser', 'licences']
+
+
+class GoogleSignInSerializer(serializers.Serializer):
+    access_token=serializers.CharField(min_length=5)
+
+    def validate_access_token(self,access_token):
+        #google_user_data=Google
+        pass
+
+
